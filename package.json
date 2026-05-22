@@ -1,0 +1,14 @@
+{
+  "name": "meraki-santier",
+  "version": "2.0.0",
+  "description": "Checklist colaborativ Meraki Lago Resort & Spa",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "logs": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
