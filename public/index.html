@@ -1895,8 +1895,10 @@ async function fbUpdate(path, value) {
     } else {
       await window.fb.set(fbRef(path), value);
     }
+    if (window.__debugFb) console.log('[FB write OK]', path, value);
   } catch (e) {
-    console.warn('FB write failed:', path, e.message);
+    console.error('[FB write FAIL]', path, e.message, e.code || '', e);
+    throw e;  // re-throw so callers can see it
   } finally {
     sync.pendingWrites--;
     updateSyncBadge();
@@ -2904,12 +2906,27 @@ async function saveContactFromEditor() {
       phone: phone,
       category: category
     };
+
+    // === DEBUG: log scrierea ===
+    console.log('[DEBUG] About to save contact:', newContact);
+    console.log('[DEBUG] Firebase available?', !!window.firebaseDb, !!window.fb);
+
     state.customContacts.push(newContact);
     saveState();
     const cb = activeContactEditor.callback;
-    await applyAndSync_addContact(newContact);
+
+    let writeError = null;
+    try {
+      await applyAndSync_addContact(newContact);
+      console.log('[DEBUG] Contact written to Firebase OK');
+    } catch (e) {
+      writeError = e;
+      console.error('[DEBUG] Contact write FAILED:', e);
+      alert('Eroare salvare contact:\n' + (e.message || e) + '\n\nVerifică Database Rules în Firebase.');
+    }
+
     closeContactEditor();
-    if (cb) cb(newContact);
+    if (cb && !writeError) cb(newContact);
     return newContact;
   }
 }
@@ -3418,6 +3435,113 @@ document.getElementById('myTasksFab').addEventListener('click', () => {
 
 // FAB: open task picker
 document.getElementById('addTaskFab').addEventListener('click', openTaskPicker);
+
+// ===== Debug: long-press wordmark sau triple-click pe progress percent → arată state =====
+(function() {
+  // Adăugăm pe wordmark (long press) ȘI pe procentaj global (triple-tap rapid).
+  // Long-press declanșează la 1.5 sec — mai scurt ca să fie mai ușor de prins.
+  const wordmark = document.querySelector('.wordmark-brand');
+  const percentEl = document.getElementById('globalPercent');
+
+  function showDebugPanel() {
+    let panel = document.getElementById('debugPanel');
+    if (panel) { panel.remove(); return; }
+
+    panel = document.createElement('div');
+    panel.id = 'debugPanel';
+    panel.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:#000;color:#0f0;font-family:monospace;font-size:11px;padding:12px;overflow:auto;z-index:99999;white-space:pre-wrap;word-break:break-all';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕ Închide';
+    closeBtn.style.cssText = 'position:fixed;top:8px;right:8px;background:#d65a48;color:#fff;border:none;padding:8px 12px;font-size:14px;border-radius:6px;z-index:100000';
+    closeBtn.onclick = () => panel.remove();
+    panel.appendChild(closeBtn);
+
+    const content = document.createElement('div');
+    content.style.cssText = 'margin-top:50px';
+
+    let txt = '=== DEBUG INFO ===\n\n';
+    txt += 'Firebase loaded: ' + (!!window.firebaseDb) + '\n';
+    txt += 'Firebase fb api: ' + (!!window.fb) + '\n';
+    txt += 'Sync online: ' + sync.online + '\n';
+    txt += 'Sync actor: ' + sync.actor + '\n';
+    txt += 'Pending writes: ' + sync.pendingWrites + '\n\n';
+
+    txt += '=== STATE LOCAL ===\n';
+    txt += 'done: ' + Object.keys(state.done).length + ' taskuri bifate\n';
+    txt += 'assignments: ' + Object.keys(state.assignments).length + ' asignări\n';
+    txt += 'customContacts: ' + state.customContacts.length + ' contacte custom\n';
+    state.customContacts.forEach(c => {
+      txt += '  - ' + c.id + ' / ' + c.name + ' (' + c.category + ')\n';
+    });
+    txt += 'customTasks blocks: ' + Object.keys(state.customTasks).length + '\n';
+    Object.keys(state.customTasks).forEach(b => {
+      txt += '  ' + b + ': ' + (state.customTasks[b] || []).length + ' tasks\n';
+    });
+    txt += '\n=== PENDING WRITES ===\n';
+    pendingLocal.writes.forEach((entry, path) => {
+      txt += path + ' = ' + JSON.stringify(entry.value).slice(0, 100) + '\n';
+    });
+
+    content.textContent = txt;
+    panel.appendChild(content);
+
+    // Add button to fetch and show current Firebase state directly
+    const fbBtn = document.createElement('button');
+    fbBtn.textContent = 'Citește direct Firebase';
+    fbBtn.style.cssText = 'display:block;margin:10px 0;padding:10px;background:#2a8a83;color:#fff;border:none;border-radius:6px;width:100%;font-size:14px';
+    fbBtn.onclick = async () => {
+      try {
+        const { get } = await import('https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js');
+        const snap = await get(fbRef('/'));
+        const val = snap.val();
+        content.textContent = '=== FIREBASE RAW ===\n' + JSON.stringify(val, null, 2);
+      } catch (e) {
+        content.textContent = '=== EROARE CITIRE FB ===\n' + (e.message || e) + '\n\nStack:\n' + (e.stack || '');
+      }
+    };
+    panel.appendChild(fbBtn);
+
+    // Test write button
+    const testBtn = document.createElement('button');
+    testBtn.textContent = 'Test scriere Firebase (test/ping)';
+    testBtn.style.cssText = 'display:block;margin:10px 0;padding:10px;background:#d4a55a;color:#000;border:none;border-radius:6px;width:100%;font-size:14px';
+    testBtn.onclick = async () => {
+      try {
+        await fbUpdate('test/ping', Date.now());
+        content.textContent = '=== TEST WRITE OK ===\nScrierea a reușit la /test/ping';
+      } catch (e) {
+        content.textContent = '=== EROARE SCRIERE TEST ===\n' + (e.message || e) + '\n' + (e.code || '') + '\n\nStack:\n' + (e.stack || '');
+      }
+    };
+    panel.appendChild(testBtn);
+
+    document.body.appendChild(panel);
+  }
+
+  if (wordmark) {
+    let pressTimer = null;
+    wordmark.addEventListener('pointerdown', () => {
+      pressTimer = setTimeout(showDebugPanel, 1500);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => {
+      wordmark.addEventListener(ev, () => {
+        if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+      });
+    });
+  }
+
+  // Triple-tap pe procentaj global
+  if (percentEl) {
+    let tapCount = 0, tapTimer = null;
+    percentEl.addEventListener('click', () => {
+      tapCount++;
+      if (tapTimer) clearTimeout(tapTimer);
+      tapTimer = setTimeout(() => { tapCount = 0; }, 500);
+      if (tapCount >= 3) { tapCount = 0; showDebugPanel(); }
+    });
+  }
+})();
 
 // Picker modal interactions
 document.getElementById('pickerList').addEventListener('click', handlePickerClick);
