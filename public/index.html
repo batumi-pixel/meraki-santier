@@ -43,18 +43,19 @@
     --lake: #7dd9d2;
     --amber: #d4a55a;
     --amber-light: #e8c084;
-    /* Surface tones (cream variables remapped for dark theme):
-       cream = card background, cream-warm = elevated card / hover */
-    --cream: #0e0e0e;          /* Card surface */
-    --cream-warm: #181818;     /* Elevated / hover surface */
-    --paper: #000000;          /* True black for AMOLED */
-    --surface: #0a0a0a;
+    /* Surface tones: card and elevated.
+       In compact-AMOLED mode the body stays pure black and cards have a 1px border
+       instead of a lighter fill, so we don't lose contrast yet keep real estate. */
+    --cream: #050505;          /* near-black card (almost invisible against body) */
+    --cream-warm: #0e0e0e;     /* slight elevation */
+    --paper: #000000;          /* True black */
+    --surface: #050505;
     --surface-2: #141414;
-    --ink: #f5efe2;            /* Off-white text */
-    --ink-soft: #b8b0a0;       /* Secondary text */
-    --muted: #6a655c;          /* Muted/disabled */
-    --line: #2a2620;           /* Borders */
-    --line-soft: #1a1814;      /* Subtle dividers */
+    --ink: #f0ebe0;            /* Off-white text */
+    --ink-soft: #a8a095;       /* Secondary text */
+    --muted: #6a655c;
+    --line: #1f1d18;           /* card borders */
+    --line-soft: #14130f;
     --done-bg: #0d1a18;
     --done-text: #5a6661;
     --danger: #d65a48;
@@ -71,40 +72,36 @@
     padding: 0;
     background: var(--paper);
     color: var(--ink);
-    font-family: 'Jost', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-weight: 400;
-    line-height: 1.5;
+    line-height: 1.4;
     -webkit-font-smoothing: antialiased;
     overscroll-behavior-y: contain;
   }
 
   body {
     background: var(--paper);
-    background-image:
-      radial-gradient(circle at 15% 10%, rgba(212, 165, 90, 0.025) 0%, transparent 50%),
-      radial-gradient(circle at 85% 90%, rgba(42, 138, 131, 0.025) 0%, transparent 50%);
     min-height: 100vh;
     padding-bottom: env(safe-area-inset-bottom);
   }
 
   /* ============ HEADER ============ */
   header.app-header {
-    background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+    background: var(--paper);
     color: var(--ink);
-    padding: calc(env(safe-area-inset-top) + 0.6rem) 1rem 0.65rem;
+    padding: calc(env(safe-area-inset-top) + 0.5rem) 0.5rem 0.5rem;
     position: sticky;
     top: 0;
     z-index: 100;
-    border-bottom: 1px solid var(--line-soft);
-    box-shadow: 0 1px 0 rgba(13, 79, 74, 0.03);
+    border-bottom: 1px solid var(--line);
   }
 
   .header-inner {
-    max-width: 900px;
-    margin: 0 auto;
+    max-width: 100%;
+    margin: 0;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
 
   .wordmark {
@@ -122,13 +119,13 @@
   .wordmark-brand {
     font-family: 'Cormorant Garamond', serif;
     font-weight: 600;
-    font-size: 1.15rem;
-    letter-spacing: 0.22em;
+    font-size: 1rem;
+    letter-spacing: 0.16em;
     color: var(--teal-deep);
     line-height: 1;
   }
 
-  /* Λ instead of A for brand consistency with merakiestate.ro */
+  /* Λ instead of A for brand consistency */
   .wordmark-brand .lambda {
     font-family: 'Cormorant Garamond', serif;
     font-style: normal;
@@ -139,16 +136,16 @@
   .wordmark-divider {
     color: var(--line);
     font-weight: 300;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
 
   .wordmark-project {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 500;
-    font-size: 0.85rem;
+    font-family: inherit;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 0.78rem;
     color: var(--ink-soft);
-    letter-spacing: 0.01em;
+    letter-spacing: 0;
     line-height: 1;
     white-space: nowrap;
     overflow: hidden;
@@ -192,7 +189,7 @@
   }
 
   .progress-percent {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: inherit;
     font-weight: 600;
     font-size: 0.9rem;
     color: var(--teal-deep);
@@ -208,7 +205,7 @@
     color: var(--ink-soft);
     padding: 0.15rem 0.55rem 0.15rem 0.45rem;
     border-radius: 100px;
-    font-family: 'Jost', sans-serif;
+    font-family: inherit;
     font-size: 0.7rem;
     font-weight: 500;
     letter-spacing: 0.02em;
@@ -271,14 +268,16 @@
 
   /* ============ FILTER PILLS ============ */
   .filter-bar {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0.75rem 1rem 0.5rem;
+    max-width: 100%;
+    margin: 0;
+    padding: 0.5rem 0.5rem 0.4rem;
     display: flex;
-    gap: 0.4rem;
+    gap: 0.3rem;
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
   }
   .filter-bar::-webkit-scrollbar { display: none; }
 
@@ -286,13 +285,12 @@
     background: transparent;
     border: 1px solid var(--line);
     color: var(--ink-soft);
-    padding: 0.4rem 0.85rem;
+    padding: 0.35rem 0.75rem;
     border-radius: 100px;
-    font-family: 'Jost', sans-serif;
-    font-size: 0.73rem;
+    font-family: inherit;
+    font-size: 0.78rem;
     font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.2s;
@@ -308,42 +306,43 @@
 
   /* ============ MAIN ============ */
   main {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0.5rem 1.25rem 4rem;
+    max-width: 100%;
+    margin: 0;
+    padding: 0.4rem 0.5rem 5rem;
   }
 
   /* ============ BLOCK SECTIONS ============ */
   .block-section {
     background: var(--cream);
-    border-radius: 14px;
-    margin-bottom: 1.25rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-bottom: 0.6rem;
     overflow: hidden;
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--line-soft);
   }
 
   .block-header {
-    padding: 1rem 1.1rem;
+    padding: 0.6rem 0.6rem;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 0.85rem;
-    background: linear-gradient(180deg, var(--cream-warm) 0%, var(--cream) 100%);
-    border-bottom: 1px solid var(--line-soft);
+    gap: 0.55rem;
+    background: var(--cream);
+    border-bottom: 1px solid var(--line);
     user-select: none;
   }
 
   .block-header.collapsed { border-bottom: 1px solid transparent; }
 
   .block-icon {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.5rem;
+    font-family: inherit;
+    font-size: 1.2rem;
     font-weight: 600;
     color: var(--teal-deep);
     background: var(--paper);
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -355,28 +354,28 @@
   .block-info { flex: 1; min-width: 0; }
 
   .block-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.35rem;
+    font-family: inherit;
+    font-size: 1rem;
     font-weight: 600;
-    color: var(--teal-deep);
-    letter-spacing: 0.01em;
-    line-height: 1.1;
+    color: var(--ink);
+    letter-spacing: 0;
+    line-height: 1.25;
   }
 
   .block-meta {
     font-size: 0.72rem;
     color: var(--ink-soft);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    margin-top: 0.2rem;
-    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    margin-top: 0.15rem;
+    font-weight: 400;
   }
 
   .block-progress-wrap { display: flex; align-items: center; gap: 0.5rem; }
 
   .block-progress {
-    width: 50px;
-    height: 50px;
+    width: 38px;
+    height: 38px;
     position: relative;
     flex-shrink: 0;
   }
@@ -405,7 +404,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Cormorant Garamond', serif;
+    font-family: inherit;
     font-weight: 600;
     font-size: 0.85rem;
     color: var(--teal-deep);
@@ -430,39 +429,39 @@
 
   /* ============ ZONES ============ */
   .zone {
-    padding: 0.75rem 1.1rem;
-    border-top: 1px solid var(--line-soft);
+    padding: 0.5rem 0.55rem 0.4rem;
+    border-top: 1px solid var(--line);
   }
   .zone:first-child { border-top: none; }
 
   .zone-title {
-    font-family: 'Jost', sans-serif;
-    font-size: 0.72rem;
-    letter-spacing: 0.2em;
+    font-family: inherit;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--amber);
     font-weight: 600;
-    margin: 0 0 0.5rem;
+    margin: 0 0 0.35rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
   }
 
   .zone-title::after {
     content: '';
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, var(--line) 0%, transparent 100%);
+    background: var(--line);
   }
 
   .zone-sub {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
+    font-family: inherit;
+    font-style: normal;
     color: var(--ink-soft);
-    font-size: 0.85rem;
+    font-size: 0.68rem;
     text-transform: none;
     letter-spacing: 0;
-    font-weight: 500;
+    font-weight: 400;
   }
 
   /* ============ TASKS ============ */
@@ -512,7 +511,7 @@
     padding: 0.6rem 1rem;
     margin-top: 0.5rem;
     border-radius: 8px;
-    font-family: 'Jost', sans-serif;
+    font-family: inherit;
     font-size: 0.82rem;
     font-weight: 500;
     letter-spacing: 0.04em;
@@ -541,12 +540,12 @@
   .task {
     display: flex;
     align-items: flex-start;
-    gap: 0.6rem;
-    padding: 0.65rem 0.25rem;
-    border-radius: 6px;
+    gap: 0.5rem;
+    padding: 0.5rem 0.15rem;
+    border-radius: 4px;
     transition: background 0.15s;
     position: relative;
-    border-bottom: 1px solid rgba(217, 208, 189, 0.3);
+    border-bottom: 1px solid var(--line-soft);
   }
 
   .task:last-child { border-bottom: none; }
@@ -678,10 +677,11 @@
   .task-content { flex: 1; min-width: 0; cursor: pointer; }
 
   .task-text {
-    font-size: 0.95rem;
-    line-height: 1.4;
+    font-size: 0.92rem;
+    line-height: 1.3;
     color: var(--ink);
     word-wrap: break-word;
+    font-weight: 400;
   }
 
   .task.done .task-text {
@@ -800,7 +800,7 @@
     font-size: 0.85rem;
     color: var(--ink-soft);
     font-style: italic;
-    font-family: 'Cormorant Garamond', serif;
+    font-family: inherit;
     font-weight: 500;
     display: none;
   }
@@ -822,18 +822,17 @@
 
   /* ============ CONTACTS SECTION ============ */
   .contacts-card {
-    background: linear-gradient(135deg, #0a1e1c 0%, #0e2a27 100%);
+    background: var(--cream);
     color: var(--ink);
-    border-radius: 14px;
-    padding: 1.1rem 0 0;
-    margin-bottom: 1.25rem;
-    box-shadow: var(--shadow-md);
+    border-radius: 10px;
+    padding: 0.7rem 0 0;
+    margin-bottom: 0.6rem;
     overflow: hidden;
-    border: 1px solid #1a3a36;
+    border: 1px solid var(--line);
   }
 
   .contacts-header {
-    padding: 0 1.1rem 0.8rem;
+    padding: 0 0.6rem 0.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -841,19 +840,19 @@
   }
 
   .contacts-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.4rem;
-    color: var(--amber-light);
-    font-weight: 500;
-    letter-spacing: 0.02em;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: var(--ink);
+    font-weight: 600;
+    letter-spacing: 0;
   }
 
   .contacts-count {
-    font-size: 0.7rem;
-    color: rgba(245, 239, 226, 0.6);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    margin-top: 0.15rem;
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+    letter-spacing: 0;
+    text-transform: none;
+    margin-top: 0.1rem;
   }
 
   .contacts-list {
@@ -865,23 +864,23 @@
   .contacts-list.collapsed { max-height: 0; }
 
   .contact-category {
-    padding: 0.6rem 1.1rem 0.3rem;
+    padding: 0.45rem 0.6rem 0.2rem;
     font-size: 0.65rem;
-    letter-spacing: 0.25em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: rgba(224, 176, 106, 0.7);
+    color: var(--amber);
     font-weight: 600;
-    background: rgba(0, 0, 0, 0.15);
+    background: var(--paper);
   }
 
   .contact-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.65rem 1.1rem;
-    border-top: 1px solid rgba(245, 239, 226, 0.06);
-    border-left: 3px solid var(--amber);
+    gap: 0.5rem;
+    padding: 0.5rem 0.6rem;
+    border-top: 1px solid var(--line-soft);
+    border-left: 2px solid var(--amber);
   }
 
   .contact-info {
@@ -892,7 +891,7 @@
   .contact-name {
     font-weight: 500;
     color: var(--ink);
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     line-height: 1.2;
   }
 
@@ -900,8 +899,8 @@
     color: var(--amber-light);
     font-size: 0.78rem;
     text-decoration: none;
-    letter-spacing: 0.03em;
-    margin-top: 0.15rem;
+    letter-spacing: 0;
+    margin-top: 0.1rem;
     display: block;
   }
 
@@ -978,7 +977,7 @@
   }
 
   .modal h3 {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: inherit;
     font-size: 1.45rem;
     margin: 0 0 0.3rem;
     color: var(--teal-deep);
@@ -1042,7 +1041,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Cormorant Garamond', serif;
+    font-family: inherit;
     font-weight: 600;
     font-size: 0.95rem;
     flex-shrink: 0;
@@ -1094,7 +1093,7 @@
     color: var(--ink);
     padding: 0.6rem 1.1rem;
     border-radius: 8px;
-    font-family: 'Jost', sans-serif;
+    font-family: inherit;
     font-size: 0.85rem;
     font-weight: 500;
     cursor: pointer;
@@ -1116,24 +1115,24 @@
   /* ============ FAB (me button) ============ */
   .my-tasks-fab {
     position: fixed;
-    bottom: calc(1rem + env(safe-area-inset-bottom));
-    left: 1rem;
+    bottom: calc(0.6rem + env(safe-area-inset-bottom));
+    left: 0.6rem;
     background: var(--me);
     color: var(--ink);
     border: none;
-    padding: 0.7rem 1.1rem;
+    padding: 0.55rem 0.85rem;
     border-radius: 100px;
-    font-family: 'Jost', sans-serif;
+    font-family: inherit;
     font-weight: 600;
-    font-size: 0.85rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+    text-transform: none;
     box-shadow: var(--shadow-lg);
     cursor: pointer;
     z-index: 50;
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.35rem;
     transition: transform 0.2s;
   }
 
@@ -1143,8 +1142,8 @@
     background: var(--amber);
     color: var(--paper);
     border-radius: 100px;
-    padding: 0.1rem 0.45rem;
-    font-size: 0.72rem;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.7rem;
     font-weight: 700;
     line-height: 1.3;
   }
@@ -1152,15 +1151,15 @@
   /* Add task FAB — bottom right */
   .add-task-fab {
     position: fixed;
-    bottom: calc(1rem + env(safe-area-inset-bottom));
-    right: 1rem;
+    bottom: calc(0.6rem + env(safe-area-inset-bottom));
+    right: 0.6rem;
     background: var(--amber);
     color: var(--paper);
     border: none;
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    font-size: 1.7rem;
+    font-size: 1.5rem;
     font-weight: 300;
     line-height: 1;
     box-shadow: var(--shadow-lg);
@@ -1199,7 +1198,7 @@
     transform: scale(0.99);
   }
   .picker-option-icon {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: inherit;
     font-size: 1.15rem;
     font-weight: 600;
     color: var(--amber-light);
@@ -1234,7 +1233,7 @@
     background: none;
     border: none;
     color: var(--amber-light);
-    font-family: 'Jost', sans-serif;
+    font-family: inherit;
     font-size: 0.8rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -1252,7 +1251,7 @@
     padding-bottom: 0.65rem;
     border-bottom: 1px solid var(--line-soft);
     font-style: italic;
-    font-family: 'Cormorant Garamond', serif;
+    font-family: inherit;
   }
 
   /* ============ FOOTER ============ */
@@ -1265,7 +1264,7 @@
   }
 
   footer .brand-mark {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: inherit;
     font-weight: 600;
     font-size: 0.95rem;
     color: var(--teal-deep);
@@ -1310,10 +1309,10 @@
     font-size: 2rem;
     color: var(--amber);
     margin-bottom: 0.5rem;
-    font-family: 'Cormorant Garamond', serif;
+    font-family: inherit;
   }
   .empty-title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: inherit;
     font-size: 1.25rem;
     color: var(--ink);
     margin-bottom: 0.25rem;
@@ -1340,7 +1339,7 @@
     color: var(--amber-light);
     padding: 0.7rem;
     border-radius: 10px;
-    font-family: 'Jost', sans-serif;
+    font-family: inherit;
     font-size: 0.85rem;
     font-weight: 600;
     letter-spacing: 0.05em;
