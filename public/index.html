@@ -3,36 +3,65 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#fdfbf5">
+<meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Checklist Șantier — Meraki Lago Resort & Spa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Firebase: realtime sync for the entire team -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+  import {
+    getDatabase, ref, set, update, remove, push, onValue, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCyy7uSAO8KidpvC-67387gvHg6ENQPqNU",
+    authDomain: "meraki-santier.firebaseapp.com",
+    databaseURL: "https://meraki-santier-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "meraki-santier",
+    storageBucket: "meraki-santier.firebasestorage.app",
+    messagingSenderId: "1006400700578",
+    appId: "1:1006400700578:web:08d9e1386de64a687d17fb"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  window.firebaseApp = app;
+  window.firebaseDb = getDatabase(app);
+  window.fb = { ref, set, update, remove, push, onValue, serverTimestamp };
+</script>
+
 <style>
   :root {
-    --teal-deep: #0d4f4a;
-    --teal: #1a6b66;
-    --teal-light: #2a8a83;
-    --lake: #6ba89f;
-    --amber: #c9954a;
-    --amber-light: #e0b06a;
-    --cream: #f5efe2;
-    --cream-warm: #ede4cf;
-    --paper: #fbf7ec;
-    --ink: #1f2421;
-    --ink-soft: #4a534e;
-    --muted: #8a9189;
-    --line: #d9d0bd;
-    --line-soft: #e8e0cc;
-    --done-bg: #e8f0ed;
-    --done-text: #6b7d76;
-    --danger: #b04a3a;
-    --me: #1a6b66;
-    --shadow-sm: 0 1px 3px rgba(13, 79, 74, 0.08);
-    --shadow-md: 0 4px 16px rgba(13, 79, 74, 0.10);
-    --shadow-lg: 0 12px 40px rgba(13, 79, 74, 0.14);
+    /* AMOLED palette: black background, golden accents */
+    --teal-deep: #2a8a83;
+    --teal: #3aaca4;
+    --teal-light: #5ccac3;
+    --lake: #7dd9d2;
+    --amber: #d4a55a;
+    --amber-light: #e8c084;
+    /* Surface tones (cream variables remapped for dark theme):
+       cream = card background, cream-warm = elevated card / hover */
+    --cream: #0e0e0e;          /* Card surface */
+    --cream-warm: #181818;     /* Elevated / hover surface */
+    --paper: #000000;          /* True black for AMOLED */
+    --surface: #0a0a0a;
+    --surface-2: #141414;
+    --ink: #f5efe2;            /* Off-white text */
+    --ink-soft: #b8b0a0;       /* Secondary text */
+    --muted: #6a655c;          /* Muted/disabled */
+    --line: #2a2620;           /* Borders */
+    --line-soft: #1a1814;      /* Subtle dividers */
+    --done-bg: #0d1a18;
+    --done-text: #5a6661;
+    --danger: #d65a48;
+    --me: #2a8a83;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.6);
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -50,16 +79,17 @@
   }
 
   body {
+    background: var(--paper);
     background-image:
-      radial-gradient(circle at 15% 10%, rgba(201, 149, 74, 0.04) 0%, transparent 40%),
-      radial-gradient(circle at 85% 90%, rgba(26, 107, 102, 0.05) 0%, transparent 40%);
+      radial-gradient(circle at 15% 10%, rgba(212, 165, 90, 0.025) 0%, transparent 50%),
+      radial-gradient(circle at 85% 90%, rgba(42, 138, 131, 0.025) 0%, transparent 50%);
     min-height: 100vh;
     padding-bottom: env(safe-area-inset-bottom);
   }
 
   /* ============ HEADER ============ */
   header.app-header {
-    background: linear-gradient(180deg, #ffffff 0%, #fdfbf5 100%);
+    background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
     color: var(--ink);
     padding: calc(env(safe-area-inset-top) + 0.6rem) 1rem 0.65rem;
     position: sticky;
@@ -270,7 +300,7 @@
 
   .pill.active {
     background: var(--teal-deep);
-    color: var(--cream);
+    color: var(--ink);
     border-color: var(--teal-deep);
   }
 
@@ -515,7 +545,7 @@
     margin-left: 0.4rem;
     vertical-align: 2px;
     background: var(--danger);
-    color: var(--cream);
+    color: var(--ink);
   }
 
   /* Assignment chip */
@@ -559,19 +589,19 @@
 
   .assign-chip.assigned-me {
     background: var(--me);
-    color: var(--cream);
+    color: var(--ink);
     border-color: var(--me);
   }
 
   .assign-chip.assigned-contact {
     background: var(--teal-light);
-    color: var(--cream);
+    color: var(--ink);
     border-color: var(--teal-light);
   }
 
   .call-btn {
     background: var(--amber);
-    color: var(--cream);
+    color: var(--ink);
     border: none;
     width: 28px;
     height: 28px;
@@ -636,13 +666,14 @@
 
   /* ============ CONTACTS SECTION ============ */
   .contacts-card {
-    background: linear-gradient(135deg, #0a3935 0%, #134f4a 100%);
-    color: var(--cream);
+    background: linear-gradient(135deg, #0a1e1c 0%, #0e2a27 100%);
+    color: var(--ink);
     border-radius: 14px;
     padding: 1.1rem 0 0;
     margin-bottom: 1.25rem;
     box-shadow: var(--shadow-md);
     overflow: hidden;
+    border: 1px solid #1a3a36;
   }
 
   .contacts-header {
@@ -704,7 +735,7 @@
 
   .contact-name {
     font-weight: 500;
-    color: var(--cream);
+    color: var(--ink);
     font-size: 0.9rem;
     line-height: 1.2;
   }
@@ -735,7 +766,7 @@
     font-size: 0.95rem;
     cursor: pointer;
     text-decoration: none;
-    color: var(--cream);
+    color: var(--ink);
   }
 
   .contact-btn.call { background: var(--amber); }
@@ -748,9 +779,9 @@
   .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(13, 79, 74, 0.55);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     z-index: 1000;
     display: none;
     align-items: flex-end;
@@ -762,7 +793,8 @@
   .modal-overlay.center { align-items: center; padding: 1rem; }
 
   .modal {
-    background: var(--paper);
+    background: var(--cream);
+    border: 1px solid var(--line);
     border-radius: 18px 18px 0 0;
     padding: 1.25rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
     max-width: 500px;
@@ -820,7 +852,7 @@
     font-family: inherit;
     font-size: 0.9rem;
     color: var(--ink);
-    background: var(--cream);
+    background: var(--paper);
     margin-bottom: 0.75rem;
     outline: none;
   }
@@ -850,7 +882,7 @@
     height: 36px;
     border-radius: 50%;
     background: var(--teal-light);
-    color: var(--cream);
+    color: var(--ink);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -915,13 +947,13 @@
 
   .modal-btn.primary {
     background: var(--teal-deep);
-    color: var(--cream);
+    color: var(--ink);
     border-color: var(--teal-deep);
   }
 
   .modal-btn.danger {
     background: var(--danger);
-    color: var(--cream);
+    color: var(--ink);
     border-color: var(--danger);
   }
 
@@ -931,7 +963,7 @@
     bottom: calc(1rem + env(safe-area-inset-bottom));
     right: 1rem;
     background: var(--me);
-    color: var(--cream);
+    color: var(--ink);
     border: none;
     padding: 0.7rem 1.1rem;
     border-radius: 100px;
@@ -986,7 +1018,7 @@
     left: 50%;
     transform: translateX(-50%) translateY(20px);
     background: var(--teal-deep);
-    color: var(--cream);
+    color: var(--ink);
     padding: 0.7rem 1.25rem;
     border-radius: 100px;
     font-size: 0.85rem;
@@ -1004,7 +1036,34 @@
     transform: translateX(-50%) translateY(0);
   }
 
-  .task.hidden, .zone.hidden, .block-section.hidden { display: none; }
+  .task.hidden, .zone.hidden, .block-section.hidden, .contacts-card.hidden { display: none; }
+
+  /* Empty state when filter returns nothing */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--ink-soft);
+  }
+  .empty-icon {
+    font-size: 2rem;
+    color: var(--amber);
+    margin-bottom: 0.5rem;
+    font-family: 'Cormorant Garamond', serif;
+  }
+  .empty-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem;
+    color: var(--ink);
+    margin-bottom: 0.25rem;
+    letter-spacing: 0.02em;
+  }
+  .empty-sub {
+    font-size: 0.85rem;
+    color: var(--muted);
+    max-width: 280px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
 
   /* ============ CONTACT ADD/EDIT ============ */
   .contact-add-btn-wrap {
@@ -1074,7 +1133,7 @@
 
   .add-new-icon {
     background: var(--amber) !important;
-    color: var(--cream) !important;
+    color: var(--ink) !important;
     font-weight: 700 !important;
     font-size: 1.3rem !important;
   }
@@ -1104,7 +1163,7 @@
     font-family: inherit;
     font-size: 0.92rem;
     color: var(--ink);
-    background: var(--cream);
+    background: var(--paper);
     outline: none;
     transition: border-color 0.15s;
   }
@@ -1134,7 +1193,7 @@
 
   .cat-chip.selected {
     background: var(--teal-deep);
-    color: var(--cream);
+    color: var(--ink);
     border-color: var(--teal-deep);
   }
 
@@ -1572,28 +1631,23 @@ function generateContactId(name) {
   return candidate;
 }
 
-// ============ SERVER SYNC ============
-const API_BASE = '/api';
-const POLL_INTERVAL_MS = 5000;
-const FLUSH_DEBOUNCE_MS = 600;
+// ============ FIREBASE SYNC ============
+// Realtime sync via Firebase Realtime Database.
+// Set in <head> via firebaseApp/firebaseDb (assigned by the module script).
 
 const sync = {
-  pendingOps: [],
-  flushTimer: null,
-  pollTimer: null,
-  serverVersion: 0,
-  online: true,
+  online: false,
+  initialized: false,
   syncing: false,
   actor: null,
-  inFlight: 0,
-  errorCount: 0
+  pendingWrites: 0,
+  applyingRemote: false  // true while applying server snapshot, suppresses local→server echo
 };
 
 function getActorName() {
-  // Persist a display name per device
   let name = localStorage.getItem('merakiActor');
   if (!name) {
-    name = prompt('Cum vrei să apari pentru ceilalți? (ex: Meraki, Marian, șef șantier)') || 'anonim';
+    name = prompt('Cum vrei să apari pentru ceilalți? (ex: Meraki, unchiul)') || 'anonim';
     name = name.trim().slice(0, 40) || 'anonim';
     localStorage.setItem('merakiActor', name);
   }
@@ -1612,9 +1666,8 @@ function updateSyncBadge() {
   const badge = document.getElementById('syncBadge');
   if (!badge) return;
   let cls = 'ok', label = '●';
-  if (sync.syncing) { cls = 'syncing'; label = '⟳'; }
+  if (sync.syncing || sync.pendingWrites > 0) { cls = 'syncing'; label = '⟳'; }
   else if (!sync.online) { cls = 'offline'; label = '○'; }
-  else if (sync.pendingOps.length > 0) { cls = 'pending'; label = '●'; }
   badge.className = 'sync-badge ' + cls;
   const actorEl = document.getElementById('syncActor');
   if (actorEl) actorEl.textContent = sync.actor || '...';
@@ -1622,132 +1675,198 @@ function updateSyncBadge() {
   if (dotEl) dotEl.textContent = label;
 }
 
-function queueOp(op) {
-  sync.pendingOps.push(op);
-  updateSyncBadge();
-  scheduleFlush();
+// ===== Firebase wrappers =====
+// We use the modular SDK (window.firebaseDb is a Database reference object,
+// window.fb namespace holds ref/update/onValue/push/serverTimestamp)
+
+function fbRef(path) {
+  return window.fb.ref(window.firebaseDb, path);
 }
 
-function scheduleFlush() {
-  if (sync.flushTimer) clearTimeout(sync.flushTimer);
-  sync.flushTimer = setTimeout(flushOps, FLUSH_DEBOUNCE_MS);
-}
-
-async function flushOps() {
-  if (sync.pendingOps.length === 0) return;
-  if (sync.inFlight > 0) {
-    // Already sending; retry after current finishes
-    scheduleFlush();
-    return;
-  }
-  const batch = sync.pendingOps.splice(0); // take all
-  sync.syncing = true;
-  sync.inFlight++;
+async function fbUpdate(path, value) {
+  sync.pendingWrites++;
   updateSyncBadge();
   try {
-    const resp = await fetch(API_BASE + '/state', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ actor: sync.actor, ops: batch })
-    });
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const serverState = await resp.json();
-    sync.serverVersion = serverState.version || 0;
-    sync.online = true;
-    sync.errorCount = 0;
-    // Reconcile: merge server state back (handles concurrent edits)
-    reconcileFromServer(serverState);
-  } catch (e) {
-    console.warn('Flush failed:', e.message);
-    // Put back the ops to retry
-    sync.pendingOps = batch.concat(sync.pendingOps);
-    sync.online = false;
-    sync.errorCount++;
-    // Exponential backoff retry
-    const delay = Math.min(30000, 1000 * Math.pow(2, Math.min(sync.errorCount, 5)));
-    setTimeout(scheduleFlush, delay);
-  } finally {
-    sync.inFlight--;
-    sync.syncing = false;
-    updateSyncBadge();
-  }
-}
-
-async function pollState() {
-  if (sync.pendingOps.length > 0 || sync.inFlight > 0) {
-    // Don't poll while we have local changes to flush; flushOps returns latest state anyway
-    return;
-  }
-  try {
-    const resp = await fetch(API_BASE + '/state', { cache: 'no-store' });
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const serverState = await resp.json();
-    sync.online = true;
-    sync.errorCount = 0;
-    if ((serverState.version || 0) !== sync.serverVersion) {
-      sync.serverVersion = serverState.version || 0;
-      reconcileFromServer(serverState);
+    if (value === null) {
+      await window.fb.remove(fbRef(path));
+    } else {
+      await window.fb.set(fbRef(path), value);
     }
   } catch (e) {
-    sync.online = false;
-    sync.errorCount++;
+    console.warn('FB write failed:', path, e.message);
   } finally {
+    sync.pendingWrites--;
     updateSyncBadge();
   }
 }
 
-function reconcileFromServer(serverState) {
-  // Server is source of truth. Replace fields. Keep local-only fields (collapsed, filter).
-  const collapsed = state.collapsed;
-  const filter = state.filter;
-  state.done = serverState.done || {};
-  state.notes = serverState.notes || {};
-  state.assignments = serverState.assignments || {};
-  state.customContacts = serverState.customContacts || [];
-  state.customCategories = serverState.customCategories || [];
-  state.collapsed = collapsed;
-  state.filter = filter;
+async function fbMultiUpdate(updates) {
+  // updates: { '/done/x': true, '/notes/y': 'text' }
+  sync.pendingWrites++;
+  updateSyncBadge();
+  try {
+    await window.fb.update(fbRef('/'), updates);
+  } catch (e) {
+    console.warn('FB multi-update failed:', e.message);
+  } finally {
+    sync.pendingWrites--;
+    updateSyncBadge();
+  }
+}
 
-  // Re-apply default assignments where none set
-  DATA.forEach(block => {
-    if (block.zones) {
-      block.zones.forEach(zone => {
-        zone.tasks.forEach(task => {
-          if (task.defaultAssign && !(task.id in state.assignments)) {
-            state.assignments[task.id] = task.defaultAssign;
-          }
-        });
-      });
+async function fbPushAudit(entry) {
+  try {
+    const auditRef = fbRef('audit');
+    await window.fb.push(auditRef, entry);
+  } catch (e) {
+    console.warn('FB audit push failed:', e.message);
+  }
+}
+
+// ===== Op → Firebase writes (replaces queueOp pattern) =====
+
+async function applyAndSync_toggleDone(taskId, value) {
+  if (value) {
+    state.done[taskId] = true;
+  } else {
+    delete state.done[taskId];
+  }
+  await fbUpdate(`done/${taskId}`, value ? true : null);
+  fbPushAudit({ ts: Date.now(), actor: sync.actor, action: value ? 'bifat' : 'debifat', taskId });
+}
+
+async function applyAndSync_setNote(taskId, value) {
+  if (value) {
+    state.notes[taskId] = value;
+  } else {
+    delete state.notes[taskId];
+  }
+  await fbUpdate(`notes/${taskId}`, value ? value : null);
+  if (value) fbPushAudit({ ts: Date.now(), actor: sync.actor, action: 'notă', taskId });
+}
+
+async function applyAndSync_setAssign(taskId, contactId) {
+  if (contactId === null || contactId === undefined) {
+    delete state.assignments[taskId];
+    await fbUpdate(`assignments/${taskId}`, null);
+    fbPushAudit({ ts: Date.now(), actor: sync.actor, action: 'eliminat asignare', taskId });
+  } else {
+    state.assignments[taskId] = contactId;
+    await fbUpdate(`assignments/${taskId}`, contactId);
+    fbPushAudit({ ts: Date.now(), actor: sync.actor, action: 'asignat', taskId, contactId });
+  }
+}
+
+async function applyAndSync_addContact(contact) {
+  // Idempotent on id
+  if (state.customContacts.find(c => c.id === contact.id)) return;
+  state.customContacts.push(contact);
+  await fbUpdate(`customContacts/${contact.id}`, contact);
+  fbPushAudit({ ts: Date.now(), actor: sync.actor, action: 'contact adăugat', name: contact.name });
+}
+
+async function applyAndSync_updateContact(contact) {
+  const existing = state.customContacts.find(c => c.id === contact.id);
+  if (!existing) return;
+  Object.assign(existing, contact);
+  await fbUpdate(`customContacts/${contact.id}`, existing);
+  fbPushAudit({ ts: Date.now(), actor: sync.actor, action: 'contact editat', name: existing.name });
+}
+
+async function applyAndSync_deleteContact(contactId) {
+  const c = state.customContacts.find(cc => cc.id === contactId);
+  if (!c) return;
+  const name = c.name;
+  // Clear assignments referencing this contact
+  const updates = {};
+  Object.keys(state.assignments).forEach(taskId => {
+    if (state.assignments[taskId] === contactId) {
+      delete state.assignments[taskId];
+      updates[`assignments/${taskId}`] = null;
     }
   });
-
-  // Persist locally as fallback
-  saveState();
-  // Re-render
-  render();
+  updates[`customContacts/${contactId}`] = null;
+  state.customContacts = state.customContacts.filter(cc => cc.id !== contactId);
+  await fbMultiUpdate(updates);
+  fbPushAudit({ ts: Date.now(), actor: sync.actor, action: 'contact șters', name });
 }
 
-async function fetchInitialState() {
-  try {
-    const resp = await fetch(API_BASE + '/state', { cache: 'no-store' });
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const serverState = await resp.json();
-    sync.serverVersion = serverState.version || 0;
-    sync.online = true;
-    return serverState;
-  } catch (e) {
-    console.warn('Initial state fetch failed:', e.message);
-    sync.online = false;
-    return null;
+async function applyAndSync_addCategory(name) {
+  if (!state.customCategories.includes(name)) {
+    state.customCategories.push(name);
+    await fbUpdate(`customCategories/${state.customCategories.length - 1}`, name);
   }
 }
 
-function startSyncPolling() {
-  if (sync.pollTimer) clearInterval(sync.pollTimer);
-  sync.pollTimer = setInterval(pollState, POLL_INTERVAL_MS);
-  // Also poll when tab becomes visible
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) pollState();
+// ===== Remote → local (Firebase listener) =====
+
+function applyRemoteSnapshot(snapshot) {
+  sync.applyingRemote = true;
+  try {
+    const val = snapshot.val() || {};
+    state.done = val.done || {};
+    state.notes = val.notes || {};
+    state.assignments = val.assignments || {};
+    // customContacts in Firebase is stored as object {id: contact}, convert to array
+    if (val.customContacts && typeof val.customContacts === 'object') {
+      state.customContacts = Object.values(val.customContacts);
+    } else {
+      state.customContacts = [];
+    }
+    // customCategories in Firebase as array (or object with numeric keys)
+    if (Array.isArray(val.customCategories)) {
+      state.customCategories = val.customCategories.filter(x => x);
+    } else if (val.customCategories && typeof val.customCategories === 'object') {
+      state.customCategories = Object.values(val.customCategories).filter(x => x);
+    } else {
+      state.customCategories = [];
+    }
+
+    // Apply default assignments where none set
+    DATA.forEach(block => {
+      if (block.zones) {
+        block.zones.forEach(zone => {
+          zone.tasks.forEach(task => {
+            if (task.defaultAssign && !(task.id in state.assignments)) {
+              state.assignments[task.id] = task.defaultAssign;
+            }
+          });
+        });
+      }
+    });
+
+    saveState();
+    render();
+  } finally {
+    sync.applyingRemote = false;
+  }
+}
+
+function startFirebaseSync() {
+  if (!window.firebaseDb) {
+    console.error('Firebase not initialized');
+    sync.online = false;
+    updateSyncBadge();
+    return;
+  }
+
+  // Listen to connection state
+  const connectedRef = window.fb.ref(window.firebaseDb, '.info/connected');
+  window.fb.onValue(connectedRef, (snap) => {
+    sync.online = !!snap.val();
+    updateSyncBadge();
+  });
+
+  // Listen to entire state (this is small — bifs/notes/assignments)
+  // Each device receives instant updates when others write.
+  const stateRef = fbRef('/');
+  window.fb.onValue(stateRef, (snap) => {
+    applyRemoteSnapshot(snap);
+    sync.initialized = true;
+  }, (err) => {
+    console.error('FB listener error:', err);
+    sync.online = false;
+    updateSyncBadge();
   });
 }
 
@@ -2157,7 +2276,7 @@ function saveContactFromEditor() {
   if (!category) category = 'Subcontractori';
 
   if (newCategoryAdded) {
-    queueOp({ type: 'addCategory', name: newCategoryAdded });
+    applyAndSync_addCategory(newCategoryAdded);
   }
 
   if (activeContactEditor.contact) {
@@ -2170,7 +2289,7 @@ function saveContactFromEditor() {
       c.category = category;
     }
     saveState();
-    queueOp({ type: 'updateContact', contact: { id: c.id, name, role, phone, category } });
+    applyAndSync_updateContact({ id: c.id, name, role, phone, category });
     if (activeContactEditor.callback) activeContactEditor.callback(c);
     closeContactEditor();
     return c;
@@ -2185,7 +2304,7 @@ function saveContactFromEditor() {
     };
     state.customContacts.push(newContact);
     saveState();
-    queueOp({ type: 'addContact', contact: newContact });
+    applyAndSync_addContact(newContact);
     if (activeContactEditor.callback) activeContactEditor.callback(newContact);
     closeContactEditor();
     return newContact;
@@ -2201,7 +2320,7 @@ function deleteCurrentContact() {
   });
   state.customContacts = state.customContacts.filter(cc => cc.id !== c.id);
   saveState();
-  queueOp({ type: 'deleteContact', contactId: c.id });
+  applyAndSync_deleteContact(c.id);
   showToast(`Șters: ${c.name}`);
   closeContactEditor();
   // Re-render everything since assignments may have changed across many tasks
@@ -2288,14 +2407,46 @@ function applyFilter() {
   });
 
   document.querySelectorAll('.block-section').forEach(blockEl => {
-    if (blockEl.querySelector('.contacts-header')) {
-      // Hide contacts card when filtering
-      blockEl.classList.toggle('hidden', filter !== 'all');
-      return;
-    }
     const visible = blockEl.querySelectorAll('.task:not(.hidden)').length;
     blockEl.classList.toggle('hidden', visible === 0);
   });
+
+  // Contacts card: hide when filtering anything other than 'all'
+  const contactsCard = document.querySelector('.contacts-card');
+  if (contactsCard) {
+    contactsCard.classList.toggle('hidden', filter !== 'all');
+  }
+
+  // Empty state: dacă niciun task vizibil, arăt un mesaj
+  showEmptyStateIfNeeded(filter);
+}
+
+function showEmptyStateIfNeeded(filter) {
+  const main = document.getElementById('main');
+  if (!main) return;
+  // Curăț orice empty state vechi
+  const oldEmpty = document.getElementById('emptyState');
+  if (oldEmpty) oldEmpty.remove();
+
+  const visibleTasks = document.querySelectorAll('.task:not(.hidden)').length;
+  if (visibleTasks === 0 && filter !== 'all') {
+    const messages = {
+      open: { icon: '✓', title: 'Toate sunt bifate!', sub: 'Felicitări, nimic de făcut.' },
+      done: { icon: '○', title: 'Nimic bifat încă', sub: 'Începe să bifezi taskurile finalizate.' },
+      unassigned: { icon: '◯', title: 'Toate sunt asignate', sub: 'Fiecare task are pe cineva responsabil.' },
+      me: { icon: '●', title: 'Nimic asignat ție', sub: 'Apasă pe „+ Asignează" la un task ca să-l preiei.' }
+    };
+    const msg = messages[filter] || { icon: '·', title: 'Niciun task', sub: '' };
+    const empty = document.createElement('div');
+    empty.id = 'emptyState';
+    empty.className = 'empty-state';
+    empty.innerHTML = `
+      <div class="empty-icon">${msg.icon}</div>
+      <div class="empty-title">${msg.title}</div>
+      <div class="empty-sub">${msg.sub}</div>
+    `;
+    main.appendChild(empty);
+  }
 }
 
 // ============ ASSIGN MODAL ============
@@ -2418,7 +2569,7 @@ document.addEventListener('click', (e) => {
         updateTaskAssignment(taskIdToAssign);
         updateMyTasksFab();
         saveState();
-        queueOp({ type: 'setAssign', taskId: taskIdToAssign, contactId: newContact.id });
+        applyAndSync_setAssign(taskIdToAssign, newContact.id);
         if (state.filter !== 'all') applyFilter();
         // Re-render contacts section if visible
         rerenderContactsSection();
@@ -2428,12 +2579,12 @@ document.addEventListener('click', (e) => {
     }
     if (contactId === '__unassign__') {
       delete state.assignments[activeAssignTaskId];
-      queueOp({ type: 'setAssign', taskId: activeAssignTaskId, contactId: null });
+      applyAndSync_setAssign(activeAssignTaskId, null);
       showToast('Asignare eliminată');
     } else {
       state.assignments[activeAssignTaskId] = contactId;
       const contact = getContact(contactId);
-      queueOp({ type: 'setAssign', taskId: activeAssignTaskId, contactId: contactId });
+      applyAndSync_setAssign(activeAssignTaskId, contactId);
       showToast(contact ? `Asignat: ${contact.name}` : 'Asignat');
     }
     updateTaskAssignment(activeAssignTaskId);
@@ -2481,7 +2632,7 @@ document.addEventListener('click', (e) => {
     updateGlobalProgress();
     updateMyTasksFab();
     saveState();
-    queueOp({ type: 'toggleDone', taskId: toggleId, value: !!state.done[toggleId] });
+    applyAndSync_toggleDone(toggleId, !!state.done[toggleId]);
     if (state.filter !== 'all') applyFilter();
     return;
   }
@@ -2554,7 +2705,7 @@ document.addEventListener('input', (e) => {
     // Per-note debounce: send 1s after user stops typing
     if (noteDebounce[noteId]) clearTimeout(noteDebounce[noteId]);
     noteDebounce[noteId] = setTimeout(() => {
-      queueOp({ type: 'setNote', taskId: noteId, value: val });
+      applyAndSync_setNote(noteId, val);
       delete noteDebounce[noteId];
     }, 1000);
   }
@@ -2623,29 +2774,22 @@ resetBtnEl.addEventListener('pointerdown', () => {
       '⚠️ Reset COMPLET pentru toată echipa?',
       'Vei șterge TOATE bifele, asignările, notele și contactele adăugate, pentru toți cei care folosesc acest checklist. Acțiunea NU poate fi anulată. Continuă doar dacă ești absolut sigur.',
       async () => {
-        // Build ops to clear server state
-        const ops = [];
-        Object.keys(state.done).forEach(taskId => ops.push({ type: 'toggleDone', taskId, value: false }));
-        Object.keys(state.notes).forEach(taskId => ops.push({ type: 'setNote', taskId, value: '' }));
-        Object.keys(state.assignments).forEach(taskId => {
-          // Don't clear default assignments — but we don't track that here, so we clear all
-          ops.push({ type: 'setAssign', taskId, contactId: null });
-        });
-        state.customContacts.forEach(c => ops.push({ type: 'deleteContact', contactId: c.id }));
-
-        // Send in one batch
+        // Wipe Firebase state in one shot
         try {
-          await fetch(API_BASE + '/state', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ actor: sync.actor + ' (RESET TOTAL)', ops })
+          await window.fb.set(fbRef('/'), {
+            done: {},
+            notes: {},
+            assignments: {},
+            customContacts: {},
+            customCategories: [],
+            audit: {}
           });
-          // Re-fetch and re-render
-          const fresh = await fetchInitialState();
-          if (fresh) reconcileFromServer(fresh);
+          fbPushAudit({ ts: Date.now(), actor: sync.actor + ' (RESET TOTAL)', action: 'reset complet' });
           showToast('Resetat complet pentru toată echipa');
+          // Listener-ul Firebase va re-hidrata automat starea + render
         } catch (e) {
           showToast('Eroare la reset — verifică conexiunea');
+          console.error('Reset failed:', e);
         }
       }
     );
@@ -2735,54 +2879,37 @@ async function init() {
   // Set actor first (will prompt if missing)
   sync.actor = getActorName();
 
-  // Try to fetch from server first
-  const serverState = await fetchInitialState();
+  // Load any local-only fields (collapsed, filter) from localStorage right away
+  try {
+    const localRaw = localStorage.getItem(STORAGE_KEY);
+    if (localRaw) {
+      const localState = JSON.parse(localRaw);
+      state.collapsed = localState.collapsed || {};
+      state.filter = localState.filter || 'all';
+    }
+  } catch (e) {}
 
-  if (serverState) {
-    // Server has data → use it as source of truth
-    state.done = serverState.done || {};
-    state.notes = serverState.notes || {};
-    state.assignments = serverState.assignments || {};
-    state.customContacts = serverState.customContacts || [];
-    state.customCategories = serverState.customCategories || [];
-    // Local-only fields: collapsed, filter — load from localStorage
-    try {
-      const localRaw = localStorage.getItem(STORAGE_KEY);
-      if (localRaw) {
-        const localState = JSON.parse(localRaw);
-        state.collapsed = localState.collapsed || {};
-        state.filter = localState.filter || 'all';
-      }
-    } catch (e) {}
-    // Apply default assignments where none set
-    DATA.forEach(block => {
-      if (block.zones) {
-        block.zones.forEach(zone => {
-          zone.tasks.forEach(task => {
-            if (task.defaultAssign && !(task.id in state.assignments)) {
-              state.assignments[task.id] = task.defaultAssign;
-            }
-          });
-        });
-      }
-    });
-    saveState(); // cache locally
-  } else {
-    // Offline fallback: load from localStorage
-    loadState();
-    showToast('Offline — folosesc copie locală');
-  }
-
+  // Render once with empty state (Firebase listener will populate immediately)
   render();
   updateSyncBadge();
-  startSyncPolling();
 
-  // Flush any leftover ops from offline use
-  if (state.__pendingOps && state.__pendingOps.length > 0) {
-    sync.pendingOps = state.__pendingOps;
-    delete state.__pendingOps;
-    scheduleFlush();
+  // Wait for Firebase SDK to be ready (loaded async via <script type="module">)
+  let waited = 0;
+  while ((!window.firebaseDb || !window.fb) && waited < 5000) {
+    await new Promise(r => setTimeout(r, 100));
+    waited += 100;
   }
+
+  if (!window.firebaseDb) {
+    console.error('Firebase did not load in time');
+    showToast('Eroare conectare — folosesc copie locală');
+    loadState();
+    render();
+    return;
+  }
+
+  // Start the realtime listener (first onValue callback hydrates state from server)
+  startFirebaseSync();
 }
 
 init();
