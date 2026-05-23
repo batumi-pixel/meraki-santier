@@ -585,6 +585,96 @@
 
   .task.done .task-checkbox::after { transform: rotate(45deg) scale(1); }
 
+  /* Status states: progress, blocked override checkbox visual */
+  .task-checkbox.status-progress {
+    background: transparent;
+    border-color: var(--amber);
+    color: var(--amber);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .task-checkbox.status-progress::after { display: none; }
+  .task-checkbox.status-blocked {
+    background: transparent;
+    border-color: var(--danger);
+    color: var(--danger);
+    font-size: 13px;
+  }
+  .task-checkbox.status-blocked::after { display: none; }
+  .task-checkbox.status-done {
+    background: var(--teal);
+    border-color: var(--teal);
+  }
+  .task.status-progress .task-text {
+    color: var(--ink);
+  }
+  .task.status-blocked .task-text {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .task.status-blocked::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--danger);
+    border-radius: 3px 0 0 3px;
+  }
+  .task.status-progress::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--amber);
+    border-radius: 3px 0 0 3px;
+  }
+  .task { position: relative; }
+
+  /* Due date chip */
+  .task-due, .task-due-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 100px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .task-due-add { color: var(--muted); border-style: dashed; }
+  .task-due.due-overdue {
+    background: rgba(214, 90, 72, 0.15);
+    color: var(--danger);
+    border-color: var(--danger);
+  }
+  .task-due.due-today {
+    background: rgba(212, 165, 90, 0.15);
+    color: var(--amber);
+    border-color: var(--amber);
+  }
+  .task-due.due-soon {
+    color: var(--amber-light);
+    border-color: var(--line);
+  }
+
+  /* Multi-assign UI */
+  .assign-hint {
+    font-size: 0.78rem;
+    color: var(--muted);
+    padding: 0.4rem 0.5rem 0.6rem;
+    font-style: italic;
+  }
+  .assign-option-check {
+    color: var(--teal-light);
+    font-weight: 700;
+    margin-left: auto;
+    padding: 0 0.4rem;
+    font-size: 1.1rem;
+    min-width: 20px;
+    text-align: center;
+  }
+
   .task-content { flex: 1; min-width: 0; cursor: pointer; }
 
   .task-text {
@@ -1416,9 +1506,12 @@
 <div class="filter-bar">
   <button class="pill active" data-filter="all">Toate</button>
   <button class="pill" data-filter="open">De făcut</button>
+  <button class="pill" data-filter="progress">În lucru</button>
+  <button class="pill" data-filter="blocked">Blocate</button>
   <button class="pill" data-filter="done">Finalizate</button>
   <button class="pill" data-filter="unassigned">Neasignate</button>
   <button class="pill" data-filter="me">La mine</button>
+  <button class="pill" data-filter="hidden">Ascunse</button>
 </div>
 
 <main id="main"></main>
@@ -1450,10 +1543,34 @@
 <!-- Assign Modal -->
 <div class="modal-overlay" id="assignModal">
   <div class="modal">
-    <h3>Asignează responsabil</h3>
+    <h3>Asignează responsabili</h3>
     <div class="modal-task" id="assignTaskText"></div>
     <input type="text" class="assign-search" id="assignSearch" placeholder="Caută persoană sau companie...">
     <div class="assign-options" id="assignOptions"></div>
+    <div class="modal-actions" style="position:sticky; bottom:0; background:var(--cream); padding-top:0.75rem; margin-top:0.5rem; border-top:1px solid var(--line)">
+      <button class="modal-btn primary" id="assignDone">Gata</button>
+    </div>
+  </div>
+</div>
+
+<!-- Due Date Modal -->
+<div class="modal-overlay center" id="dueDateModal">
+  <div class="modal center-modal">
+    <h3>Termen pentru task</h3>
+    <p class="modal-task" id="dueDateTaskText"></p>
+    <input type="date" id="dueDateInput" class="form-input" style="font-size:1rem">
+    <div class="picker-list" style="margin-top:0.75rem; max-height:none">
+      <div class="picker-option" data-due-quick="today"><div class="picker-option-icon">⏱</div><div class="picker-option-info"><div class="picker-option-name">Azi</div></div></div>
+      <div class="picker-option" data-due-quick="tomorrow"><div class="picker-option-icon">→</div><div class="picker-option-info"><div class="picker-option-name">Mâine</div></div></div>
+      <div class="picker-option" data-due-quick="week"><div class="picker-option-icon">7</div><div class="picker-option-info"><div class="picker-option-name">Săptămâna asta (vineri)</div></div></div>
+    </div>
+    <div class="modal-actions" style="justify-content: space-between">
+      <button class="modal-btn danger" id="dueDateClear">Elimină termen</button>
+      <div style="display:flex; gap:0.5rem">
+        <button class="modal-btn" id="dueDateCancel">Anulează</button>
+        <button class="modal-btn primary" id="dueDateSave">Salvează</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1797,6 +1914,9 @@ let state = {
   customContacts: [],  // user-added contacts
   customCategories: [], // user-added category names
   customTasks: {},     // { blockId: [ { id, text, createdBy, createdAt } ] }
+  taskStatus: {},      // { taskId: 'todo'|'progress'|'blocked'|'done' }
+  taskDueDates: {},    // { taskId: 'YYYY-MM-DD' }
+  taskHidden: {},      // { taskId: true } — soft delete for native tasks
   filter: 'all'
 };
 
@@ -1961,10 +2081,81 @@ async function applyAndSync_setAssign(taskId, contactId) {
     await fbUpdate(`assignments/${taskId}`, null);
     fbPushAudit({ ts: Date.now(), actor: sync.actor, action: 'eliminat asignare', taskId });
   } else {
-    state.assignments[taskId] = contactId;
-    await fbUpdate(`assignments/${taskId}`, contactId);
-    fbPushAudit({ ts: Date.now(), actor: sync.actor, action: 'asignat', taskId, contactId });
+    // Multi-assignee: contactId can be array OR single string
+    const ids = Array.isArray(contactId) ? contactId.filter(x => x) : [contactId];
+    if (ids.length === 0) {
+      delete state.assignments[taskId];
+      await fbUpdate(`assignments/${taskId}`, null);
+    } else {
+      state.assignments[taskId] = ids;
+      await fbUpdate(`assignments/${taskId}`, ids);
+    }
+    fbPushAudit({ ts: Date.now(), actor: sync.actor, action: 'asignat', taskId, contactIds: ids });
   }
+}
+
+async function applyAndSync_toggleAssignee(taskId, contactId) {
+  // Add or remove a single assignee from the task
+  const current = getAssignees(taskId);
+  let updated;
+  if (current.includes(contactId)) {
+    updated = current.filter(id => id !== contactId);
+  } else {
+    updated = [...current, contactId];
+  }
+  if (updated.length === 0) {
+    delete state.assignments[taskId];
+    await fbUpdate(`assignments/${taskId}`, null);
+  } else {
+    state.assignments[taskId] = updated;
+    await fbUpdate(`assignments/${taskId}`, updated);
+  }
+  fbPushAudit({ ts: Date.now(), actor: sync.actor, action: 'asignare actualizată', taskId, contactIds: updated });
+}
+
+async function applyAndSync_setStatus(taskId, status) {
+  // status: 'todo' | 'progress' | 'blocked' | 'done'
+  if (!state.taskStatus) state.taskStatus = {};
+  if (status === 'todo') {
+    delete state.taskStatus[taskId];
+  } else {
+    state.taskStatus[taskId] = status;
+  }
+  // Keep state.done in sync for backward compat
+  if (status === 'done') {
+    state.done[taskId] = true;
+  } else {
+    delete state.done[taskId];
+  }
+  await fbMultiUpdate({
+    [`taskStatus/${taskId}`]: status === 'todo' ? null : status,
+    [`done/${taskId}`]: status === 'done' ? true : null
+  });
+  fbPushAudit({ ts: Date.now(), actor: sync.actor, action: 'status: ' + status, taskId });
+}
+
+async function applyAndSync_setDueDate(taskId, dateStr) {
+  // dateStr: 'YYYY-MM-DD' or null
+  if (!state.taskDueDates) state.taskDueDates = {};
+  if (dateStr) {
+    state.taskDueDates[taskId] = dateStr;
+  } else {
+    delete state.taskDueDates[taskId];
+  }
+  await fbUpdate(`taskDueDates/${taskId}`, dateStr || null);
+  fbPushAudit({ ts: Date.now(), actor: sync.actor, action: dateStr ? 'termen: ' + dateStr : 'termen eliminat', taskId });
+}
+
+async function applyAndSync_hideTask(taskId, hide) {
+  // Soft delete: mark native task as hidden for everyone
+  if (!state.taskHidden) state.taskHidden = {};
+  if (hide) {
+    state.taskHidden[taskId] = true;
+  } else {
+    delete state.taskHidden[taskId];
+  }
+  await fbUpdate(`taskHidden/${taskId}`, hide ? true : null);
+  fbPushAudit({ ts: Date.now(), actor: sync.actor, action: hide ? 'task ascuns' : 'task restaurat', taskId });
 }
 
 async function applyAndSync_addContact(contact) {
@@ -1989,10 +2180,20 @@ async function applyAndSync_deleteContact(contactId) {
   const c = state.customContacts.find(cc => cc.id === contactId);
   if (!c) return;
   const name = c.name;
-  // Clear assignments referencing this contact
+  // Clear assignments referencing this contact (handle both legacy string and array formats)
   const updates = {};
   Object.keys(state.assignments).forEach(taskId => {
-    if (state.assignments[taskId] === contactId) {
+    const a = state.assignments[taskId];
+    if (Array.isArray(a)) {
+      const filtered = a.filter(id => id !== contactId);
+      if (filtered.length === 0) {
+        delete state.assignments[taskId];
+        updates[`assignments/${taskId}`] = null;
+      } else if (filtered.length !== a.length) {
+        state.assignments[taskId] = filtered;
+        updates[`assignments/${taskId}`] = filtered;
+      }
+    } else if (a === contactId) {
       delete state.assignments[taskId];
       updates[`assignments/${taskId}`] = null;
     }
@@ -2123,6 +2324,9 @@ function applyRemoteSnapshot(snapshot) {
     state.done = val.done || {};
     state.notes = val.notes || {};
     state.assignments = val.assignments || {};
+    state.taskStatus = val.taskStatus || {};
+    state.taskDueDates = val.taskDueDates || {};
+    state.taskHidden = val.taskHidden || {};
 
     // customContacts: merge — server provides authoritative, but keep local-only items
     // that might still be in pending state.
@@ -2255,6 +2459,42 @@ function getContact(id) {
   return getAllContacts().find(c => c.id === id);
 }
 
+// ===== Multi-assignee helpers (backward compatible with old string format) =====
+function getAssignees(taskId) {
+  const a = state.assignments[taskId];
+  if (!a) return [];
+  if (Array.isArray(a)) return a.filter(x => x);
+  return [a]; // legacy string format
+}
+
+function hasAssignee(taskId, contactId) {
+  return getAssignees(taskId).includes(contactId);
+}
+
+// ===== Task status (new) =====
+// Statuses: 'todo' (default) | 'progress' | 'blocked' | 'done'
+// Legacy: state.done[taskId] = true → status = 'done'
+function getTaskStatus(taskId) {
+  const s = state.taskStatus && state.taskStatus[taskId];
+  if (s) return s;
+  if (state.done[taskId]) return 'done';
+  return 'todo';
+}
+
+function isTaskDone(taskId) {
+  return getTaskStatus(taskId) === 'done';
+}
+
+// ===== Due date helpers =====
+function getTaskDueDate(taskId) {
+  return (state.taskDueDates && state.taskDueDates[taskId]) || null;
+}
+
+// ===== Hidden flag (soft delete for native tasks) =====
+function isTaskHidden(taskId) {
+  return !!(state.taskHidden && state.taskHidden[taskId]);
+}
+
 function findTask(id) {
   for (const block of DATA) {
     if (!block.zones) continue;
@@ -2289,15 +2529,17 @@ function getBlockStats(block) {
   if (block.zones) {
     block.zones.forEach(zone => {
       zone.tasks.forEach(task => {
+        if (isTaskHidden(task.id)) return;
         total++;
-        if (state.done[task.id]) done++;
+        if (isTaskDone(task.id)) done++;
       });
     });
   }
   // Include custom tasks
   (state.customTasks[block.id] || []).forEach(task => {
+    if (isTaskHidden(task.id)) return;
     total++;
-    if (state.done[task.id]) done++;
+    if (isTaskDone(task.id)) done++;
   });
   return { total, done, percent: total > 0 ? Math.round((done / total) * 100) : 0 };
 }
@@ -2313,8 +2555,9 @@ function getGlobalStats() {
   // Include "other" virtual block
   if (state.customTasks['other']) {
     state.customTasks['other'].forEach(task => {
+      if (isTaskHidden(task.id)) return;
       total++;
-      if (state.done[task.id]) done++;
+      if (isTaskDone(task.id)) done++;
     });
   }
   return { total, done, percent: total > 0 ? Math.round((done / total) * 100) : 0 };
@@ -2323,7 +2566,7 @@ function getGlobalStats() {
 function getMyTaskCount() {
   let count = 0;
   Object.keys(state.assignments).forEach(taskId => {
-    if (state.assignments[taskId] === 'me' && !state.done[taskId]) count++;
+    if (hasAssignee(taskId, 'me') && !isTaskDone(taskId) && !isTaskHidden(taskId)) count++;
   });
   return count;
 }
@@ -2452,47 +2695,86 @@ function renderZone(zone, extraCustomTasks) {
 }
 
 function renderTask(task, isCustom) {
-  const done = state.done[task.id];
+  // Filter hidden tasks (native soft-deleted)
+  if (isTaskHidden(task.id)) return '';
+
+  const status = getTaskStatus(task.id);
+  const done = status === 'done';
   const note = state.notes[task.id] || '';
   const hasNote = note.length > 0;
   const urgentTag = task.urgent ? `<span class="task-tag">Urgent</span>` : '';
   const customBadge = isCustom && task.createdBy ? `<span class="task-tag custom-tag" title="Adăugat de ${task.createdBy}">+${task.createdBy}</span>` : '';
 
-  const assignedId = state.assignments[task.id];
-  const assignedContact = assignedId ? getContact(assignedId) : null;
+  // Due date display
+  const dueDate = getTaskDueDate(task.id);
+  let dueDateHtml = '';
+  if (dueDate) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const due = new Date(dueDate + 'T00:00:00');
+    const diffDays = Math.round((due - today) / 86400000);
+    let dueClass = 'due-normal';
+    let dueLabel;
+    if (diffDays < 0) { dueClass = 'due-overdue'; dueLabel = `restant ${Math.abs(diffDays)}z`; }
+    else if (diffDays === 0) { dueClass = 'due-today'; dueLabel = 'azi'; }
+    else if (diffDays === 1) { dueClass = 'due-soon'; dueLabel = 'mâine'; }
+    else if (diffDays <= 7) { dueClass = 'due-soon'; dueLabel = `${diffDays}z`; }
+    else { dueLabel = due.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' }); }
+    dueDateHtml = `<span class="task-due ${dueClass}" data-due-edit="${task.id}" title="${dueDate}">⏱ ${dueLabel}</span>`;
+  }
 
+  // Multi-assignee chips
+  const assignees = getAssignees(task.id);
   let chipHtml = '';
   let callBtn = '';
 
-  if (!assignedContact) {
+  if (assignees.length === 0) {
     chipHtml = `<span class="assign-chip unassigned" data-assign-task="${task.id}">
       <span class="chip-icon">+</span> Asignează
     </span>`;
-  } else if (assignedContact.special === 'me') {
-    chipHtml = `<span class="assign-chip assigned-me" data-assign-task="${task.id}">
-      <span class="chip-icon">●</span> ${assignedContact.name}
-    </span>`;
   } else {
-    const roleSuffix = assignedContact.role ? ` · ${assignedContact.role}` : '';
-    chipHtml = `<span class="assign-chip assigned-contact" data-assign-task="${task.id}">
-      <span class="chip-icon">●</span> ${assignedContact.name}${roleSuffix}
-    </span>`;
-    if (assignedContact.phone) {
-      callBtn = `<a href="tel:${assignedContact.phone}" class="call-btn" title="Sună ${assignedContact.name}" onclick="event.stopPropagation()">☎</a>`;
+    // Show all assignees as separate chips
+    chipHtml = assignees.map(aid => {
+      const c = getContact(aid);
+      if (!c) return '';
+      if (c.special === 'me') {
+        return `<span class="assign-chip assigned-me" data-assign-task="${task.id}">
+          <span class="chip-icon">●</span> ${c.name}
+        </span>`;
+      } else {
+        const roleSuffix = c.role ? ` · ${c.role}` : '';
+        return `<span class="assign-chip assigned-contact" data-assign-task="${task.id}">
+          <span class="chip-icon">●</span> ${c.name}${roleSuffix}
+        </span>`;
+      }
+    }).join('');
+    // Call button: only show if one assignee with phone
+    if (assignees.length === 1) {
+      const c = getContact(assignees[0]);
+      if (c && c.phone) {
+        callBtn = `<a href="tel:${c.phone}" class="call-btn" title="Sună ${c.name}" onclick="event.stopPropagation()">☎</a>`;
+      }
     }
   }
 
-  const deleteBtn = isCustom
-    ? `<button class="task-delete-btn" data-delete-task="${task.id}" title="Șterge task">✕</button>`
-    : '';
+  // Status indicator (replaces simple checkbox)
+  const statusIcons = {
+    todo: { icon: '', label: 'De făcut', cls: '' },
+    progress: { icon: '◐', label: 'În lucru', cls: 'status-progress' },
+    blocked: { icon: '⚠', label: 'Blocat', cls: 'status-blocked' },
+    done: { icon: '✓', label: 'Gata', cls: 'status-done' }
+  };
+  const st = statusIcons[status] || statusIcons.todo;
+
+  const deleteBtn = `<button class="task-delete-btn" data-delete-task="${task.id}" data-task-is-custom="${isCustom ? '1' : '0'}" title="Șterge task">✕</button>`;
 
   return `
-    <li class="task ${done ? 'done' : ''}${isCustom ? ' task-custom' : ''}" data-task-id="${task.id}">
-      <div class="task-checkbox" data-toggle-task="${task.id}"></div>
+    <li class="task ${done ? 'done' : ''} ${st.cls}${isCustom ? ' task-custom' : ''}" data-task-id="${task.id}">
+      <div class="task-checkbox ${st.cls}" data-status-cycle="${task.id}" title="${st.label}">${st.icon}</div>
       <div class="task-content">
-        <div class="task-text" data-toggle-task="${task.id}">${task.text}${urgentTag}${customBadge}</div>
+        <div class="task-text" data-status-cycle="${task.id}">${task.text}${urgentTag}${customBadge}</div>
         <div class="task-meta">
           ${chipHtml}
+          ${dueDateHtml || `<span class="task-due-add" data-due-edit="${task.id}" title="Termen">⏱</span>`}
           ${callBtn}
         </div>
         <div class="task-note ${hasNote ? 'visible' : ''}" data-note-for="${task.id}">
@@ -2596,40 +2878,17 @@ function updateMyTasksFab() {
 }
 
 function updateTaskAssignment(taskId) {
-  // Re-render just that task's meta area
+  // Cleanest: re-render the entire task row
   const taskEl = document.querySelector(`[data-task-id="${taskId}"]`);
   if (!taskEl) return;
   const task = findTask(taskId);
   if (!task) return;
-
-  const metaEl = taskEl.querySelector('.task-meta');
-  if (!metaEl) return;
-
-  const assignedId = state.assignments[taskId];
-  const assignedContact = assignedId ? getContact(assignedId) : null;
-
-  let chipHtml = '';
-  let callBtn = '';
-
-  if (!assignedContact) {
-    chipHtml = `<span class="assign-chip unassigned" data-assign-task="${taskId}">
-      <span class="chip-icon">+</span> Asignează
-    </span>`;
-  } else if (assignedContact.special === 'me') {
-    chipHtml = `<span class="assign-chip assigned-me" data-assign-task="${taskId}">
-      <span class="chip-icon">●</span> ${assignedContact.name}
-    </span>`;
-  } else {
-    const roleSuffix = assignedContact.role ? ` · ${assignedContact.role}` : '';
-    chipHtml = `<span class="assign-chip assigned-contact" data-assign-task="${taskId}">
-      <span class="chip-icon">●</span> ${assignedContact.name}${roleSuffix}
-    </span>`;
-    if (assignedContact.phone) {
-      callBtn = `<a href="tel:${assignedContact.phone}" class="call-btn" title="Sună" onclick="event.stopPropagation()">☎</a>`;
-    }
-  }
-
-  metaEl.innerHTML = chipHtml + callBtn;
+  const blockId = findBlockForTask(taskId);
+  const isCustom = blockId && (state.customTasks[blockId] || []).some(t => t.id === taskId);
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = `<ul>${renderTask(task, isCustom)}</ul>`;
+  const newEl = tempDiv.querySelector('.task');
+  if (newEl) taskEl.replaceWith(newEl);
 }
 
 // ============ CONTACT EDITOR ============
@@ -3041,13 +3300,17 @@ function applyFilter() {
   const filter = state.filter;
   document.querySelectorAll('.task').forEach(taskEl => {
     const id = taskEl.dataset.taskId;
-    const done = !!state.done[id];
-    const assigned = state.assignments[id];
+    const status = getTaskStatus(id);
+    const done = status === 'done';
+    const assignees = getAssignees(id);
     let show = true;
     if (filter === 'open') show = !done;
     else if (filter === 'done') show = done;
-    else if (filter === 'unassigned') show = !assigned;
-    else if (filter === 'me') show = assigned === 'me';
+    else if (filter === 'unassigned') show = assignees.length === 0;
+    else if (filter === 'me') show = assignees.includes('me');
+    else if (filter === 'progress') show = status === 'progress';
+    else if (filter === 'blocked') show = status === 'blocked';
+    else if (filter === 'hidden') show = isTaskHidden(id);
     taskEl.classList.toggle('hidden', !show);
   });
 
@@ -3120,6 +3383,40 @@ function closeAssignModal() {
   activeAssignTaskId = null;
 }
 
+// ===== Due date picker =====
+let activeDueTaskId = null;
+
+function openDueDatePicker(taskId) {
+  activeDueTaskId = taskId;
+  const task = findTask(taskId);
+  document.getElementById('dueDateTaskText').textContent = task ? task.text : '';
+  const existing = getTaskDueDate(taskId);
+  document.getElementById('dueDateInput').value = existing || '';
+  document.getElementById('dueDateModal').classList.add('visible');
+}
+
+function closeDueDatePicker() {
+  document.getElementById('dueDateModal').classList.remove('visible');
+  resetModalStyles('dueDateModal');
+  activeDueTaskId = null;
+}
+
+function ymd(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+async function setDueDateAndClose(dateStr) {
+  if (!activeDueTaskId) return;
+  await applyAndSync_setDueDate(activeDueTaskId, dateStr);
+  saveState();
+  closeDueDatePicker();
+  render();
+  showToast(dateStr ? 'Termen setat' : 'Termen eliminat');
+}
+
 // ===== Keyboard handling: ridică modalul activ când apare tastatura =====
 function adjustModalForKeyboard() {
   if (!window.visualViewport) return;
@@ -3169,12 +3466,19 @@ function setupViewportHandler() {
 function renderAssignOptions() {
   const container = document.getElementById('assignOptions');
   const search = activeAssignSearch.toLowerCase().trim();
-  const currentAssign = activeAssignTaskId ? state.assignments[activeAssignTaskId] : null;
+  const currentAssignees = activeAssignTaskId ? getAssignees(activeAssignTaskId) : [];
   const allContacts = getAllContacts();
 
   let html = '';
 
-  // Add new contact option (always at top)
+  // Header hint
+  if (currentAssignees.length > 0) {
+    html += `<div class="assign-hint">Apasă pe contact ca să-l adaugi sau elimini. Poți selecta mai mulți.</div>`;
+  } else {
+    html += `<div class="assign-hint">Apasă pe contact ca să-l asignezi. Poți selecta mai mulți.</div>`;
+  }
+
+  // Add new contact option
   html += `
     <div class="assign-option add-new" data-pick-contact="__new__">
       <div class="assign-option-icon add-new-icon">+</div>
@@ -3185,13 +3489,13 @@ function renderAssignOptions() {
     </div>
   `;
 
-  // Unassign option (only if currently assigned)
-  if (currentAssign) {
+  // Clear all (only if anyone assigned)
+  if (currentAssignees.length > 0) {
     html += `
       <div class="assign-option" data-pick-contact="__unassign__">
         <div class="assign-option-icon unassign">−</div>
         <div class="assign-option-info">
-          <div class="assign-option-name">Elimină asignare</div>
+          <div class="assign-option-name">Elimină toți (${currentAssignees.length})</div>
         </div>
       </div>
     `;
@@ -3200,14 +3504,15 @@ function renderAssignOptions() {
   // Me option
   const meContact = allContacts.find(c => c.id === 'me');
   if (!search || meContact.name.toLowerCase().includes(search)) {
-    const selectedClass = currentAssign === 'me' ? 'selected' : '';
+    const isSelected = currentAssignees.includes('me');
     html += `
-      <div class="assign-option ${selectedClass}" data-pick-contact="me">
+      <div class="assign-option ${isSelected ? 'selected' : ''}" data-pick-contact="me">
         <div class="assign-option-icon me">EU</div>
         <div class="assign-option-info">
           <div class="assign-option-name">${meContact.name}</div>
           <div class="assign-option-meta">Eu mă ocup</div>
         </div>
+        <div class="assign-option-check">${isSelected ? '✓' : ''}</div>
       </div>
     `;
   }
@@ -3225,17 +3530,18 @@ function renderAssignOptions() {
   Object.keys(grouped).forEach(cat => {
     html += `<div style="font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); padding:0.75rem 0.5rem 0.25rem; font-weight:600">${cat}</div>`;
     grouped[cat].forEach(c => {
-      const selectedClass = currentAssign === c.id ? 'selected' : '';
+      const isSelected = currentAssignees.includes(c.id);
       const initials = c.name.split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
       const sub = c.role || (c.phone ? c.phone : '');
       const isCustom = c.id.startsWith('custom-') ? ' <span class="custom-badge-sm">custom</span>' : '';
       html += `
-        <div class="assign-option ${selectedClass}" data-pick-contact="${c.id}">
+        <div class="assign-option ${isSelected ? 'selected' : ''}" data-pick-contact="${c.id}">
           <div class="assign-option-icon">${initials}</div>
           <div class="assign-option-info">
             <div class="assign-option-name">${c.name}${isCustom}</div>
             <div class="assign-option-meta">${sub}</div>
           </div>
+          <div class="assign-option-check">${isSelected ? '✓' : ''}</div>
         </div>
       `;
     });
@@ -3245,7 +3551,7 @@ function renderAssignOptions() {
 }
 
 // ============ EVENT HANDLERS ============
-document.addEventListener('click', (e) => {
+document.addEventListener('click', async (e) => {
   // Assign chip click
   const assignTaskId = e.target.closest('[data-assign-task]');
   if (assignTaskId) {
@@ -3254,42 +3560,52 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  // Pick contact in modal
+  // Pick contact in modal (multi-select: toggle on click)
   const pickContact = e.target.closest('[data-pick-contact]');
   if (pickContact && activeAssignTaskId) {
     const contactId = pickContact.dataset.pickContact;
     if (contactId === '__new__') {
-      // Open new-contact modal, pre-fill with search if any
       const prefillName = activeAssignSearch.trim();
       const taskIdToAssign = activeAssignTaskId;
-      // Close the assign modal first so contact modal sits on top cleanly
       closeAssignModal();
       openContactEditor(null, prefillName, async (newContact) => {
-        // After contact saved: assign it to the original task
-        state.assignments[taskIdToAssign] = newContact.id;
-        await applyAndSync_setAssign(taskIdToAssign, newContact.id);
+        // Add new contact to existing assignees (don't replace)
+        const current = getAssignees(taskIdToAssign);
+        const updated = [...current, newContact.id];
+        state.assignments[taskIdToAssign] = updated;
+        await applyAndSync_setAssign(taskIdToAssign, updated);
         saveState();
         showToast(`Adăugat și asignat: ${newContact.name}`);
-        // Full re-render so the chip on the task picks up the new contact name
         render();
       });
       return;
     }
     if (contactId === '__unassign__') {
       delete state.assignments[activeAssignTaskId];
-      applyAndSync_setAssign(activeAssignTaskId, null);
+      await applyAndSync_setAssign(activeAssignTaskId, null);
       showToast('Asignare eliminată');
-    } else {
-      state.assignments[activeAssignTaskId] = contactId;
-      const contact = getContact(contactId);
-      applyAndSync_setAssign(activeAssignTaskId, contactId);
-      showToast(contact ? `Asignat: ${contact.name}` : 'Asignat');
+      updateMyTasksFab();
+      saveState();
+      if (state.filter !== 'all') applyFilter();
+      closeAssignModal();
+      render();
+      return;
     }
-    updateTaskAssignment(activeAssignTaskId);
-    updateMyTasksFab();
+    // Toggle assignee — keep modal open for multi-select
+    await applyAndSync_toggleAssignee(activeAssignTaskId, contactId);
     saveState();
+    renderAssignOptions(); // refresh selected state
+    updateMyTasksFab();
     if (state.filter !== 'all') applyFilter();
-    closeAssignModal();
+    // Update the task row without closing the modal
+    const taskEl = document.querySelector(`[data-task-id="${activeAssignTaskId}"]`);
+    if (taskEl) {
+      const newTaskHtml = renderTask(findTask(activeAssignTaskId), findBlockForTask(activeAssignTaskId) === 'other' || (state.customTasks[findBlockForTask(activeAssignTaskId)] || []).some(t => t.id === activeAssignTaskId));
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = `<ul>${newTaskHtml}</ul>`;
+      const newEl = tempDiv.querySelector('.task');
+      if (newEl) taskEl.replaceWith(newEl);
+    }
     return;
   }
 
@@ -3312,26 +3628,10 @@ document.addEventListener('click', (e) => {
         rerenderContactsSection();
         // Update any tasks displaying this contact
         Object.keys(state.assignments).forEach(taskId => {
-          if (state.assignments[taskId] === id) updateTaskAssignment(taskId);
+          if (hasAssignee(taskId, id)) updateTaskAssignment(taskId);
         });
       });
     }
-    return;
-  }
-
-  // Toggle task
-  const toggleId = e.target.dataset.toggleTask;
-  if (toggleId) {
-    state.done[toggleId] = !state.done[toggleId];
-    const taskEl = document.querySelector(`[data-task-id="${toggleId}"]`);
-    if (taskEl) taskEl.classList.toggle('done', state.done[toggleId]);
-    const blockId = findBlockForTask(toggleId);
-    if (blockId) updateBlockProgress(blockId);
-    updateGlobalProgress();
-    updateMyTasksFab();
-    saveState();
-    applyAndSync_toggleDone(toggleId, !!state.done[toggleId]);
-    if (state.filter !== 'all') applyFilter();
     return;
   }
 
@@ -3345,22 +3645,64 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  // Delete custom task
+  // Delete task (custom = hard delete, native = soft hide)
   const deleteTaskBtn = e.target.closest('[data-delete-task]');
   if (deleteTaskBtn) {
     e.stopPropagation();
     const taskId = deleteTaskBtn.dataset.deleteTask;
-    const blockId = findBlockForTask(taskId);
+    const isCustom = deleteTaskBtn.dataset.taskIsCustom === '1';
     const task = findTask(taskId);
-    if (!task || !blockId) return;
-    showConfirm(
-      'Șterge taskul?',
-      `Vei elimina "${task.text}" pentru toată echipa. Acțiunea nu poate fi anulată.`,
-      async () => {
-        await applyAndSync_deleteCustomTask(blockId, taskId);
-        showToast('Task șters');
-      }
-    );
+    if (!task) return;
+    if (isCustom) {
+      const blockId = findBlockForTask(taskId);
+      if (!blockId) return;
+      showConfirm(
+        'Șterge taskul?',
+        `Vei elimina "${task.text}" pentru toată echipa. Acțiunea nu poate fi anulată.`,
+        async () => {
+          await applyAndSync_deleteCustomTask(blockId, taskId);
+          showToast('Task șters');
+        }
+      );
+    } else {
+      showConfirm(
+        'Ascunde taskul?',
+        `"${task.text}" va fi ascuns pentru toată echipa. Poți să-l restaurezi mai târziu din filtrul "Ascunse".`,
+        async () => {
+          await applyAndSync_hideTask(taskId, true);
+          showToast('Task ascuns');
+        }
+      );
+    }
+    return;
+  }
+
+  // Status cycle (replace old toggle)
+  const statusCycleBtn = e.target.closest('[data-status-cycle]');
+  if (statusCycleBtn) {
+    const taskId = statusCycleBtn.dataset.statusCycle;
+    const cur = getTaskStatus(taskId);
+    const order = ['todo', 'progress', 'blocked', 'done'];
+    const next = order[(order.indexOf(cur) + 1) % order.length];
+    applyAndSync_setStatus(taskId, next);
+    // Inline update of progress
+    const blockId = findBlockForTask(taskId);
+    if (blockId) updateBlockProgress(blockId);
+    updateGlobalProgress();
+    updateMyTasksFab();
+    saveState();
+    if (state.filter !== 'all') applyFilter();
+    // Re-render the single task in place for instant feedback
+    render();
+    return;
+  }
+
+  // Due date edit
+  const dueEdit = e.target.closest('[data-due-edit]');
+  if (dueEdit) {
+    e.stopPropagation();
+    const taskId = dueEdit.dataset.dueEdit;
+    openDueDatePicker(taskId);
     return;
   }
 
@@ -3415,6 +3757,41 @@ document.getElementById('assignSearch').addEventListener('input', (e) => {
 // Close assign modal on backdrop click
 document.getElementById('assignModal').addEventListener('click', (e) => {
   if (e.target.id === 'assignModal') closeAssignModal();
+});
+
+// "Gata" button in assign modal
+document.getElementById('assignDone').addEventListener('click', () => {
+  closeAssignModal();
+  render();
+});
+
+// Due date modal handlers
+document.getElementById('dueDateCancel').addEventListener('click', closeDueDatePicker);
+document.getElementById('dueDateModal').addEventListener('click', (e) => {
+  if (e.target.id === 'dueDateModal') closeDueDatePicker();
+});
+document.getElementById('dueDateSave').addEventListener('click', () => {
+  const val = document.getElementById('dueDateInput').value;
+  setDueDateAndClose(val || null);
+});
+document.getElementById('dueDateClear').addEventListener('click', () => setDueDateAndClose(null));
+document.getElementById('dueDateModal').addEventListener('click', (e) => {
+  const quick = e.target.closest('[data-due-quick]');
+  if (!quick) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  let d;
+  switch (quick.dataset.dueQuick) {
+    case 'today': d = today; break;
+    case 'tomorrow': d = new Date(today); d.setDate(d.getDate() + 1); break;
+    case 'week': {
+      d = new Date(today);
+      const dow = d.getDay() || 7;
+      const daysToFri = (5 - dow + 7) % 7 || 7;
+      d.setDate(d.getDate() + daysToFri);
+      break;
+    }
+  }
+  if (d) setDueDateAndClose(ymd(d));
 });
 
 // Note input (per-task debounce ca să nu trimitem la fiecare tastă)
@@ -3662,12 +4039,15 @@ document.getElementById('exportBtn').addEventListener('click', () => {
     block.zones.forEach(zone => {
       txt += `\n  ${zone.title}${zone.sub ? ' — ' + zone.sub.replace(/&amp;/g, '&') : ''}\n`;
       zone.tasks.forEach(task => {
-        const mark = state.done[task.id] ? '[x]' : '[ ]';
-        const assignId = state.assignments[task.id];
-        const contact = assignId ? getContact(assignId) : null;
-        const assign = contact ? `  ⟶ ${contact.name}${contact.role ? ' (' + contact.role + ')' : ''}${contact.phone ? ' · ' + contact.phone : ''}` : '';
+        if (isTaskHidden(task.id)) return;
+        const st = getTaskStatus(task.id);
+        const mark = st === 'done' ? '[x]' : st === 'progress' ? '[~]' : st === 'blocked' ? '[!]' : '[ ]';
+        const assignees = getAssignees(task.id).map(id => getContact(id)).filter(Boolean);
+        const assign = assignees.length ? `  ⟶ ${assignees.map(c => c.name + (c.role ? ' (' + c.role + ')' : '') + (c.phone ? ' · ' + c.phone : '')).join(', ')}` : '';
         const urg = task.urgent ? ' ⚠' : '';
-        txt += `  ${mark} ${task.text}${assign}${urg}\n`;
+        const due = getTaskDueDate(task.id);
+        const dueTxt = due ? ` · termen ${due}` : '';
+        txt += `  ${mark} ${task.text}${assign}${urg}${dueTxt}\n`;
         if (state.notes[task.id]) txt += `      notă: ${state.notes[task.id]}\n`;
       });
     });
