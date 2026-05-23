@@ -2059,13 +2059,13 @@ const pendingLocal = {
 
 function recordPendingWrite(path, value) {
   pendingLocal.writes.set(path, { value, ts: Date.now() });
-  // Auto-expire after 5s (write should be acked by then)
+  // Auto-expire after 30s (was 5s; some writes can take longer on slow mobile networks)
   setTimeout(() => {
     const existing = pendingLocal.writes.get(path);
-    if (existing && Date.now() - existing.ts >= 5000) {
+    if (existing && Date.now() - existing.ts >= 30000) {
       pendingLocal.writes.delete(path);
     }
-  }, 5500);
+  }, 30500);
 }
 
 function applyPendingWritesOnto(val) {
@@ -2121,13 +2121,19 @@ function applyRemoteSnapshot(snapshot) {
     state.done = val.done || {};
     state.notes = val.notes || {};
     state.assignments = val.assignments || {};
-    // customContacts in Firebase is stored as object {id: contact}, convert to array
-    if (val.customContacts && typeof val.customContacts === 'object') {
-      state.customContacts = Object.values(val.customContacts).filter(c => c && c.id);
-    } else {
-      state.customContacts = [];
-    }
-    // customCategories in Firebase as array (or object with numeric keys)
+
+    // customContacts: merge — server provides authoritative, but keep local-only items
+    // that might still be in pending state.
+    const serverContacts = (val.customContacts && typeof val.customContacts === 'object')
+      ? Object.values(val.customContacts).filter(c => c && c.id) : [];
+    const serverContactIds = new Set(serverContacts.map(c => c.id));
+    // Local-only contacts (not yet on server) — keep them if they have pending writes
+    const localOnlyContacts = state.customContacts.filter(c =>
+      c && c.id && !serverContactIds.has(c.id) && pendingLocal.writes.has(`customContacts/${c.id}`)
+    );
+    state.customContacts = [...serverContacts, ...localOnlyContacts];
+
+    // customCategories
     if (Array.isArray(val.customCategories)) {
       state.customCategories = val.customCategories.filter(x => x);
     } else if (val.customCategories && typeof val.customCategories === 'object') {
@@ -2135,18 +2141,32 @@ function applyRemoteSnapshot(snapshot) {
     } else {
       state.customCategories = [];
     }
+
     // customTasks: { blockId: { taskId: task, ... } } -> { blockId: [tasks] }
-    state.customTasks = {};
+    // Same merge logic: keep local-only tasks still pending
+    const serverCustomTasks = {};
     if (val.customTasks && typeof val.customTasks === 'object') {
       Object.keys(val.customTasks).forEach(blockId => {
         const blockTasks = val.customTasks[blockId];
         if (blockTasks && typeof blockTasks === 'object') {
-          state.customTasks[blockId] = Object.values(blockTasks)
+          serverCustomTasks[blockId] = Object.values(blockTasks)
             .filter(t => t && t.id && t.text)
             .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
         }
       });
     }
+    // Merge: keep any local task that's still pending
+    Object.keys(state.customTasks).forEach(blockId => {
+      const localTasks = state.customTasks[blockId] || [];
+      const serverIds = new Set((serverCustomTasks[blockId] || []).map(t => t.id));
+      const localOnly = localTasks.filter(t =>
+        t && t.id && !serverIds.has(t.id) && pendingLocal.writes.has(`customTasks/${blockId}/${t.id}`)
+      );
+      if (localOnly.length > 0) {
+        serverCustomTasks[blockId] = [...(serverCustomTasks[blockId] || []), ...localOnly];
+      }
+    });
+    state.customTasks = serverCustomTasks;
 
     // Apply default assignments where none set
     DATA.forEach(block => {
@@ -2907,10 +2927,6 @@ async function saveContactFromEditor() {
       category: category
     };
 
-    // === DEBUG: log scrierea ===
-    console.log('[DEBUG] About to save contact:', newContact);
-    console.log('[DEBUG] Firebase available?', !!window.firebaseDb, !!window.fb);
-
     state.customContacts.push(newContact);
     saveState();
     const cb = activeContactEditor.callback;
@@ -2918,11 +2934,10 @@ async function saveContactFromEditor() {
     let writeError = null;
     try {
       await applyAndSync_addContact(newContact);
-      console.log('[DEBUG] Contact written to Firebase OK');
     } catch (e) {
       writeError = e;
-      console.error('[DEBUG] Contact write FAILED:', e);
-      alert('Eroare salvare contact:\n' + (e.message || e) + '\n\nVerifică Database Rules în Firebase.');
+      console.error('Contact write FAILED:', e);
+      showToast('Eroare salvare contact — vezi consola (long-press pe wordmark)');
     }
 
     closeContactEditor();
@@ -3245,18 +3260,16 @@ document.addEventListener('click', (e) => {
       // Open new-contact modal, pre-fill with search if any
       const prefillName = activeAssignSearch.trim();
       const taskIdToAssign = activeAssignTaskId;
-      openContactEditor(null, prefillName, (newContact) => {
-        // After save: assign new contact to active task
+      // Close the assign modal first so contact modal sits on top cleanly
+      closeAssignModal();
+      openContactEditor(null, prefillName, async (newContact) => {
+        // After contact saved: assign it to the original task
         state.assignments[taskIdToAssign] = newContact.id;
-        showToast(`Adăugat și asignat: ${newContact.name}`);
-        updateTaskAssignment(taskIdToAssign);
-        updateMyTasksFab();
+        await applyAndSync_setAssign(taskIdToAssign, newContact.id);
         saveState();
-        applyAndSync_setAssign(taskIdToAssign, newContact.id);
-        if (state.filter !== 'all') applyFilter();
-        // Re-render contacts section if visible
-        rerenderContactsSection();
-        closeAssignModal();
+        showToast(`Adăugat și asignat: ${newContact.name}`);
+        // Full re-render so the chip on the task picks up the new contact name
+        render();
       });
       return;
     }
