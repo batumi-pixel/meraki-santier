@@ -1885,6 +1885,8 @@ function fbRef(path) {
 }
 
 async function fbUpdate(path, value) {
+  // Record this write as "pending" so concurrent snapshot reconciliation doesn't undo it.
+  recordPendingWrite(path, value);
   sync.pendingWrites++;
   updateSyncBadge();
   try {
@@ -1903,6 +1905,11 @@ async function fbUpdate(path, value) {
 
 async function fbMultiUpdate(updates) {
   // updates: { '/done/x': true, '/notes/y': 'text' }
+  Object.keys(updates).forEach(path => {
+    // Strip leading slash for our internal pending tracking (consistent with fbUpdate)
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    recordPendingWrite(cleanPath, updates[path]);
+  });
   sync.pendingWrites++;
   updateSyncBadge();
   try {
@@ -2034,17 +2041,87 @@ async function applyAndSync_deleteCustomTask(blockId, taskId) {
 }
 
 // ===== Remote → local (Firebase listener) =====
+//
+// Issue: Firebase trimite snapshots aproape instant când scriem ceva local.
+// Dacă avem 2 scrieri în zbor (ex: add contact + setAssign la el), un snapshot poate sosi
+// după prima scriere dar înainte de a doua, ștergând starea pe care tocmai am aplicat-o local.
+//
+// Soluția: păstrăm un buffer de "scrieri locale recente" (path -> value).
+// La aplicarea unui snapshot remote, suprapunem aceste valori peste val-ul de pe server
+// înainte de a-l aplica în state. Curățăm buffer-ul când scrierile sunt confirmate prin
+// faptul că snapshot-ul conține aceleași valori sau când expiră (~3s).
+const pendingLocal = {
+  // path -> { value, ts }
+  writes: new Map()
+};
+
+function recordPendingWrite(path, value) {
+  pendingLocal.writes.set(path, { value, ts: Date.now() });
+  // Auto-expire after 5s (write should be acked by then)
+  setTimeout(() => {
+    const existing = pendingLocal.writes.get(path);
+    if (existing && Date.now() - existing.ts >= 5000) {
+      pendingLocal.writes.delete(path);
+    }
+  }, 5500);
+}
+
+function applyPendingWritesOnto(val) {
+  // Apply each pending write to the snapshot val, overlaying any stale data.
+  pendingLocal.writes.forEach((entry, path) => {
+    const parts = path.split('/').filter(Boolean);
+    if (parts.length === 0) return;
+    let cursor = val;
+    for (let i = 0; i < parts.length - 1; i++) {
+      const k = parts[i];
+      if (!cursor[k] || typeof cursor[k] !== 'object') cursor[k] = {};
+      cursor = cursor[k];
+    }
+    const lastKey = parts[parts.length - 1];
+    if (entry.value === null || entry.value === undefined) {
+      delete cursor[lastKey];
+    } else {
+      cursor[lastKey] = entry.value;
+    }
+  });
+  return val;
+}
+
+function clearPendingWriteIfMatches(path, expectedValue, val) {
+  // Walk val using path; if value matches expected, drop from pending.
+  const parts = path.split('/').filter(Boolean);
+  let cursor = val;
+  for (const k of parts) {
+    if (cursor === null || cursor === undefined || typeof cursor !== 'object') {
+      cursor = undefined;
+      break;
+    }
+    cursor = cursor[k];
+  }
+  // Match check: for objects, do shallow compare; for primitives, ===
+  const matches = (expectedValue === null && (cursor === null || cursor === undefined))
+    || (expectedValue === cursor)
+    || (typeof expectedValue === 'object' && expectedValue !== null && cursor && JSON.stringify(expectedValue) === JSON.stringify(cursor));
+  if (matches) pendingLocal.writes.delete(path);
+}
 
 function applyRemoteSnapshot(snapshot) {
   sync.applyingRemote = true;
   try {
-    const val = snapshot.val() || {};
+    let val = snapshot.val() || {};
+    // Check if any pending writes are already reflected; if so, drop them.
+    pendingLocal.writes.forEach((entry, path) => {
+      clearPendingWriteIfMatches(path, entry.value, val);
+    });
+    // Overlay still-pending writes
+    val = applyPendingWritesOnto(val);
+
     state.done = val.done || {};
     state.notes = val.notes || {};
     state.assignments = val.assignments || {};
     // customContacts in Firebase is stored as object {id: contact}, convert to array
     if (val.customContacts && typeof val.customContacts === 'object') {
-      state.customContacts = Object.values(val.customContacts);
+      state.customContacts = Object.values(val.customContacts).filter(c => c && c.id);
     } else {
       state.customContacts = [];
     }
@@ -2771,7 +2848,7 @@ function renderCategoryPicker() {
   picker.innerHTML = html;
 }
 
-function saveContactFromEditor() {
+async function saveContactFromEditor() {
   const name = document.getElementById('contactName').value.trim();
   const role = document.getElementById('contactRole').value.trim();
   const phone = document.getElementById('contactPhone').value.trim();
@@ -2813,9 +2890,10 @@ function saveContactFromEditor() {
       c.category = category;
     }
     saveState();
-    applyAndSync_updateContact({ id: c.id, name, role, phone, category });
-    if (activeContactEditor.callback) activeContactEditor.callback(c);
+    const cb = activeContactEditor.callback;
+    await applyAndSync_updateContact({ id: c.id, name, role, phone, category });
     closeContactEditor();
+    if (cb) cb(c);
     return c;
   } else {
     // Create new
@@ -2828,9 +2906,10 @@ function saveContactFromEditor() {
     };
     state.customContacts.push(newContact);
     saveState();
-    applyAndSync_addContact(newContact);
-    if (activeContactEditor.callback) activeContactEditor.callback(newContact);
+    const cb = activeContactEditor.callback;
+    await applyAndSync_addContact(newContact);
     closeContactEditor();
+    if (cb) cb(newContact);
     return newContact;
   }
 }
