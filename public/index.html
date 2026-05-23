@@ -1968,9 +1968,11 @@ async function applyAndSync_setAssign(taskId, contactId) {
 }
 
 async function applyAndSync_addContact(contact) {
-  // Idempotent on id
-  if (state.customContacts.find(c => c.id === contact.id)) return;
-  state.customContacts.push(contact);
+  // Ensure local state has it (push only if not already there)
+  if (!state.customContacts.find(c => c.id === contact.id)) {
+    state.customContacts.push(contact);
+  }
+  // Always write to Firebase (idempotent — set overwrites)
   await fbUpdate(`customContacts/${contact.id}`, contact);
   fbPushAudit({ ts: Date.now(), actor: sync.actor, action: 'contact adăugat', name: contact.name });
 }
