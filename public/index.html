@@ -466,6 +466,72 @@
   }
 
   /* ============ TASKS ============ */
+
+  /* Custom (user-added) tasks */
+  .zone-custom {
+    border-top: 1px dashed var(--line);
+  }
+  .zone-custom .zone-title {
+    color: var(--amber-light);
+  }
+  .task-custom .task-text {
+    font-style: italic;
+  }
+  .task-tag.custom-tag {
+    background: var(--surface-2);
+    color: var(--amber-light);
+    border: 1px solid var(--line);
+    font-style: normal;
+  }
+  .task-actions {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.15rem;
+  }
+  .task-delete-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.9rem;
+    padding: 0.25rem 0.4rem;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: all 0.15s;
+    align-self: flex-start;
+    margin-top: 1px;
+  }
+  .task-delete-btn:active {
+    color: var(--danger);
+    opacity: 1;
+  }
+  .add-task-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed var(--line);
+    color: var(--amber);
+    padding: 0.6rem 1rem;
+    margin-top: 0.5rem;
+    border-radius: 8px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+  .add-task-btn:active {
+    background: var(--cream-warm);
+    transform: scale(0.99);
+  }
+  .add-task-icon {
+    font-size: 1rem;
+    line-height: 1;
+    color: var(--amber);
+  }
   .task-list {
     list-style: none;
     padding: 0;
@@ -860,9 +926,9 @@
   .assign-search:focus { border-color: var(--teal); }
 
   .assign-options {
-    max-height: 50vh;
     overflow-y: auto;
     margin: 0 -0.5rem;
+    /* No max-height — the parent modal handles overflow with its own scroll */
   }
 
   .assign-option {
@@ -961,7 +1027,7 @@
   .my-tasks-fab {
     position: fixed;
     bottom: calc(1rem + env(safe-area-inset-bottom));
-    right: 1rem;
+    left: 1rem;
     background: var(--me);
     color: var(--ink);
     border: none;
@@ -985,12 +1051,118 @@
 
   .fab-count {
     background: var(--amber);
-    color: var(--teal-deep);
+    color: var(--paper);
     border-radius: 100px;
     padding: 0.1rem 0.45rem;
     font-size: 0.72rem;
     font-weight: 700;
     line-height: 1.3;
+  }
+
+  /* Add task FAB — bottom right */
+  .add-task-fab {
+    position: fixed;
+    bottom: calc(1rem + env(safe-area-inset-bottom));
+    right: 1rem;
+    background: var(--amber);
+    color: var(--paper);
+    border: none;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    font-size: 1.7rem;
+    font-weight: 300;
+    line-height: 1;
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+    padding: 0;
+  }
+  .add-task-fab:active { transform: scale(0.92); }
+
+  /* Bloc/zone picker */
+  .picker-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin: 0 -0.5rem;
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+  .picker-option {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.8rem 0.75rem;
+    border-radius: 10px;
+    cursor: pointer;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    transition: all 0.15s;
+  }
+  .picker-option:active {
+    background: var(--cream-warm);
+    transform: scale(0.99);
+  }
+  .picker-option-icon {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--amber-light);
+    background: var(--cream-warm);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .picker-option-info { flex: 1; min-width: 0; }
+  .picker-option-name {
+    font-weight: 500;
+    color: var(--ink);
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+  .picker-option-meta {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .picker-arrow {
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .picker-back {
+    background: none;
+    border: none;
+    color: var(--amber-light);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 0.25rem 0;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .picker-breadcrumb {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid var(--line-soft);
+    font-style: italic;
+    font-family: 'Cormorant Garamond', serif;
   }
 
   /* ============ FOOTER ============ */
@@ -1262,6 +1434,19 @@
   <span class="fab-count" id="fabCount">0</span>
 </button>
 
+<!-- Add Task FAB -->
+<button class="add-task-fab" id="addTaskFab" title="Adaugă task nou">+</button>
+
+<!-- Task Picker Modal (chooses block/zone, then enters task) -->
+<div class="modal-overlay" id="taskPickerModal">
+  <div class="modal">
+    <button class="picker-back" id="pickerBack" style="display:none">← Înapoi</button>
+    <h3 id="pickerTitle">Unde adăugăm taskul?</h3>
+    <div class="picker-breadcrumb" id="pickerBreadcrumb" style="display:none"></div>
+    <div class="picker-list" id="pickerList"></div>
+  </div>
+</div>
+
 <!-- Assign Modal -->
 <div class="modal-overlay" id="assignModal">
   <div class="modal">
@@ -1280,6 +1465,21 @@
     <div class="modal-actions">
       <button class="modal-btn" id="confirmCancel">Anulează</button>
       <button class="modal-btn danger" id="confirmOk">Confirmă</button>
+    </div>
+  </div>
+</div>
+
+<!-- Task Creator Modal -->
+<div class="modal-overlay" id="taskCreatorModal">
+  <div class="modal">
+    <h3 id="taskCreatorTitle">Task nou</h3>
+    <div class="contact-form">
+      <label class="form-label">Descrie taskul</label>
+      <textarea id="newTaskText" class="form-input" rows="3" placeholder="ex: De vopsit ușă subsol" autocomplete="off" style="resize:vertical; min-height:80px"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn" id="taskCreatorCancel">Anulează</button>
+      <button class="modal-btn primary" id="taskCreatorSave">Adaugă</button>
     </div>
   </div>
 </div>
@@ -1596,6 +1796,7 @@ let state = {
   assignments: {},
   customContacts: [],  // user-added contacts
   customCategories: [], // user-added category names
+  customTasks: {},     // { blockId: [ { id, text, createdBy, createdAt } ] }
   filter: 'all'
 };
 
@@ -1798,6 +1999,40 @@ async function applyAndSync_addCategory(name) {
   }
 }
 
+async function applyAndSync_addCustomTask(blockId, text, zoneTitle) {
+  text = (text || '').trim();
+  if (!text) return null;
+  const taskId = `custom-${blockId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  const task = {
+    id: taskId,
+    text: text,
+    zone: zoneTitle || null,  // optional: which zone to attach to
+    createdBy: sync.actor || 'anonim',
+    createdAt: Date.now()
+  };
+  if (!state.customTasks[blockId]) state.customTasks[blockId] = [];
+  state.customTasks[blockId].push(task);
+  await fbUpdate(`customTasks/${blockId}/${taskId}`, task);
+  fbPushAudit({ ts: Date.now(), actor: sync.actor, action: 'task adăugat', text, blockId, zone: zoneTitle || null });
+  return task;
+}
+
+async function applyAndSync_deleteCustomTask(blockId, taskId) {
+  if (!state.customTasks[blockId]) return;
+  const task = state.customTasks[blockId].find(t => t.id === taskId);
+  if (!task) return;
+  const text = task.text;
+  state.customTasks[blockId] = state.customTasks[blockId].filter(t => t.id !== taskId);
+  // Curățăm și state-ul derivat al taskului
+  const updates = {};
+  updates[`customTasks/${blockId}/${taskId}`] = null;
+  if (state.done[taskId]) { delete state.done[taskId]; updates[`done/${taskId}`] = null; }
+  if (state.notes[taskId]) { delete state.notes[taskId]; updates[`notes/${taskId}`] = null; }
+  if (state.assignments[taskId]) { delete state.assignments[taskId]; updates[`assignments/${taskId}`] = null; }
+  await fbMultiUpdate(updates);
+  fbPushAudit({ ts: Date.now(), actor: sync.actor, action: 'task șters', text });
+}
+
 // ===== Remote → local (Firebase listener) =====
 
 function applyRemoteSnapshot(snapshot) {
@@ -1820,6 +2055,18 @@ function applyRemoteSnapshot(snapshot) {
       state.customCategories = Object.values(val.customCategories).filter(x => x);
     } else {
       state.customCategories = [];
+    }
+    // customTasks: { blockId: { taskId: task, ... } } -> { blockId: [tasks] }
+    state.customTasks = {};
+    if (val.customTasks && typeof val.customTasks === 'object') {
+      Object.keys(val.customTasks).forEach(blockId => {
+        const blockTasks = val.customTasks[blockId];
+        if (blockTasks && typeof blockTasks === 'object') {
+          state.customTasks[blockId] = Object.values(blockTasks)
+            .filter(t => t && t.id && t.text)
+            .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+        }
+      });
     }
 
     // Apply default assignments where none set
@@ -1915,6 +2162,11 @@ function findTask(id) {
       if (t) return t;
     }
   }
+  // Search in customTasks too
+  for (const blockId in state.customTasks) {
+    const t = (state.customTasks[blockId] || []).find(t => t.id === id);
+    if (t) return t;
+  }
   return null;
 }
 
@@ -1925,17 +2177,26 @@ function findBlockForTask(id) {
       if (zone.tasks.find(t => t.id === id)) return block.id;
     }
   }
+  for (const blockId in state.customTasks) {
+    if ((state.customTasks[blockId] || []).find(t => t.id === id)) return blockId;
+  }
   return null;
 }
 
 function getBlockStats(block) {
   let total = 0, done = 0;
-  if (!block.zones) return { total: 0, done: 0, percent: 0 };
-  block.zones.forEach(zone => {
-    zone.tasks.forEach(task => {
-      total++;
-      if (state.done[task.id]) done++;
+  if (block.zones) {
+    block.zones.forEach(zone => {
+      zone.tasks.forEach(task => {
+        total++;
+        if (state.done[task.id]) done++;
+      });
     });
+  }
+  // Include custom tasks
+  (state.customTasks[block.id] || []).forEach(task => {
+    total++;
+    if (state.done[task.id]) done++;
   });
   return { total, done, percent: total > 0 ? Math.round((done / total) * 100) : 0 };
 }
@@ -1948,6 +2209,13 @@ function getGlobalStats() {
     total += s.total;
     done += s.done;
   });
+  // Include "other" virtual block
+  if (state.customTasks['other']) {
+    state.customTasks['other'].forEach(task => {
+      total++;
+      if (state.done[task.id]) done++;
+    });
+  }
   return { total, done, percent: total > 0 ? Math.round((done / total) * 100) : 0 };
 }
 
@@ -1972,6 +2240,25 @@ function render() {
     }
   });
 
+  // Virtual block "Altele" — appears only if there are custom tasks under blockId 'other'
+  if (state.customTasks['other'] && state.customTasks['other'].length > 0) {
+    const otherBlock = {
+      id: 'other',
+      icon: '···',
+      title: 'Altele',
+      meta: 'Lucruri neîncadrate',
+      zones: []
+    };
+    // Insert before the Contacts card if it exists, otherwise at the end
+    const contactsEl = main.querySelector('.contacts-card');
+    const otherEl = renderBlock(otherBlock);
+    if (contactsEl) {
+      main.insertBefore(otherEl, contactsEl);
+    } else {
+      main.appendChild(otherEl);
+    }
+  }
+
   updateGlobalProgress();
   updateMyTasksFab();
   applyFilter();
@@ -1984,6 +2271,40 @@ function renderBlock(block) {
 
   const stats = getBlockStats(block);
   const isCollapsed = state.collapsed[block.id];
+  const allCustomTasks = state.customTasks[block.id] || [];
+
+  // Distribute custom tasks: those with `zone` set go to that zone, others go to the "Adăugate manual" section.
+  const tasksByZone = {};
+  const unzonedTasks = [];
+  allCustomTasks.forEach(t => {
+    if (t.zone) {
+      if (!tasksByZone[t.zone]) tasksByZone[t.zone] = [];
+      tasksByZone[t.zone].push(t);
+    } else {
+      unzonedTasks.push(t);
+    }
+  });
+
+  // Render the static zones, appending matching custom tasks at the end
+  const zonesHtml = (block.zones || []).map(zone => {
+    const extra = tasksByZone[zone.title] || [];
+    return renderZone(zone, extra);
+  }).join('');
+
+  // The "Adăugate manual" catch-all zone (always present, contains unzoned customs)
+  const customZoneHtml = `
+    <div class="zone zone-custom" data-custom-zone-block="${block.id}">
+      <h3 class="zone-title">
+        <span>Adăugate manual${unzonedTasks.length ? ` <span class="zone-sub">${unzonedTasks.length} ${unzonedTasks.length === 1 ? 'task' : 'taskuri'}</span>` : ''}</span>
+      </h3>
+      <ul class="task-list">
+        ${unzonedTasks.map(task => renderTask(task, true)).join('')}
+      </ul>
+      <button class="add-task-btn" data-add-task-block="${block.id}">
+        <span class="add-task-icon">+</span> Adaugă task aici
+      </button>
+    </div>
+  `;
 
   blockEl.innerHTML = `
     <div class="block-header ${isCollapsed ? 'collapsed' : ''}" data-block-toggle="${block.id}">
@@ -2006,14 +2327,16 @@ function renderBlock(block) {
       </div>
     </div>
     <div class="block-body ${isCollapsed ? 'collapsed' : ''}">
-      ${block.zones.map(zone => renderZone(zone)).join('')}
+      ${zonesHtml}
+      ${customZoneHtml}
     </div>
   `;
 
   return blockEl;
 }
 
-function renderZone(zone) {
+function renderZone(zone, extraCustomTasks) {
+  const customTasks = extraCustomTasks || [];
   return `
     <div class="zone">
       <h3 class="zone-title">
@@ -2021,16 +2344,18 @@ function renderZone(zone) {
       </h3>
       <ul class="task-list">
         ${zone.tasks.map(task => renderTask(task)).join('')}
+        ${customTasks.map(task => renderTask(task, true)).join('')}
       </ul>
     </div>
   `;
 }
 
-function renderTask(task) {
+function renderTask(task, isCustom) {
   const done = state.done[task.id];
   const note = state.notes[task.id] || '';
   const hasNote = note.length > 0;
   const urgentTag = task.urgent ? `<span class="task-tag">Urgent</span>` : '';
+  const customBadge = isCustom && task.createdBy ? `<span class="task-tag custom-tag" title="Adăugat de ${task.createdBy}">+${task.createdBy}</span>` : '';
 
   const assignedId = state.assignments[task.id];
   const assignedContact = assignedId ? getContact(assignedId) : null;
@@ -2056,11 +2381,15 @@ function renderTask(task) {
     }
   }
 
+  const deleteBtn = isCustom
+    ? `<button class="task-delete-btn" data-delete-task="${task.id}" title="Șterge task">✕</button>`
+    : '';
+
   return `
-    <li class="task ${done ? 'done' : ''}" data-task-id="${task.id}">
+    <li class="task ${done ? 'done' : ''}${isCustom ? ' task-custom' : ''}" data-task-id="${task.id}">
       <div class="task-checkbox" data-toggle-task="${task.id}"></div>
       <div class="task-content">
-        <div class="task-text" data-toggle-task="${task.id}">${task.text}${urgentTag}</div>
+        <div class="task-text" data-toggle-task="${task.id}">${task.text}${urgentTag}${customBadge}</div>
         <div class="task-meta">
           ${chipHtml}
           ${callBtn}
@@ -2069,7 +2398,10 @@ function renderTask(task) {
           <textarea placeholder="Notă..." data-note-input="${task.id}">${note}</textarea>
         </div>
       </div>
-      <button class="task-note-btn ${hasNote ? 'has-note' : ''}" data-note-btn="${task.id}" title="Notă">✎</button>
+      <div class="task-actions">
+        <button class="task-note-btn ${hasNote ? 'has-note' : ''}" data-note-btn="${task.id}" title="Notă">✎</button>
+        ${deleteBtn}
+      </div>
     </li>
   `;
 }
@@ -2202,6 +2534,197 @@ function updateTaskAssignment(taskId) {
 // ============ CONTACT EDITOR ============
 let activeContactEditor = { contact: null, callback: null, selectedCategory: '' };
 
+// ============ TASK PICKER (FAB workflow) ============
+let activePicker = { stage: 'block', blockId: null, blockTitle: null };
+
+function openTaskPicker() {
+  activePicker = { stage: 'block', blockId: null, blockTitle: null };
+  renderTaskPicker();
+  document.getElementById('taskPickerModal').classList.add('visible');
+}
+
+function closeTaskPicker() {
+  document.getElementById('taskPickerModal').classList.remove('visible');
+  resetModalStyles('taskPickerModal');
+  activePicker = { stage: 'block', blockId: null, blockTitle: null };
+}
+
+function renderTaskPicker() {
+  const titleEl = document.getElementById('pickerTitle');
+  const breadEl = document.getElementById('pickerBreadcrumb');
+  const backBtn = document.getElementById('pickerBack');
+  const listEl = document.getElementById('pickerList');
+
+  if (activePicker.stage === 'block') {
+    titleEl.textContent = 'Unde adăugăm taskul?';
+    breadEl.style.display = 'none';
+    backBtn.style.display = 'none';
+
+    // Blocks from DATA + a virtual "Altele" option
+    const blocks = DATA.filter(b => !b.isContacts);
+    let html = '';
+    blocks.forEach(block => {
+      html += `
+        <div class="picker-option" data-pick-block="${block.id}" data-pick-block-title="${block.title}">
+          <div class="picker-option-icon">${block.icon}</div>
+          <div class="picker-option-info">
+            <div class="picker-option-name">${block.title}</div>
+            <div class="picker-option-meta">${block.meta}</div>
+          </div>
+          <span class="picker-arrow">›</span>
+        </div>
+      `;
+    });
+    // "Altele" — un container catch-all care nu se leagă de niciun bloc real
+    html += `
+      <div class="picker-option" data-pick-block="other" data-pick-block-title="Altele">
+        <div class="picker-option-icon">···</div>
+        <div class="picker-option-info">
+          <div class="picker-option-name">Altele</div>
+          <div class="picker-option-meta">Lucruri neîncadrate</div>
+        </div>
+        <span class="picker-arrow">›</span>
+      </div>
+    `;
+    listEl.innerHTML = html;
+    return;
+  }
+
+  if (activePicker.stage === 'zone') {
+    const block = DATA.find(b => b.id === activePicker.blockId);
+    titleEl.textContent = 'În ce zonă?';
+    breadEl.textContent = activePicker.blockTitle;
+    breadEl.style.display = 'block';
+    backBtn.style.display = 'flex';
+
+    let html = '';
+    // "General" — fără zonă specifică, merge în "Adăugate manual"
+    html += `
+      <div class="picker-option" data-pick-zone="__none__">
+        <div class="picker-option-icon">+</div>
+        <div class="picker-option-info">
+          <div class="picker-option-name">Adăugate manual</div>
+          <div class="picker-option-meta">Fără zonă specifică</div>
+        </div>
+      </div>
+    `;
+    if (block && block.zones) {
+      block.zones.forEach(zone => {
+        const subSuffix = zone.sub ? ` — ${zone.sub.replace(/&amp;/g, '&')}` : '';
+        html += `
+          <div class="picker-option" data-pick-zone="${zone.title.replace(/"/g, '&quot;')}">
+            <div class="picker-option-icon">·</div>
+            <div class="picker-option-info">
+              <div class="picker-option-name">${zone.title}${subSuffix}</div>
+              <div class="picker-option-meta">${zone.tasks.length} ${zone.tasks.length === 1 ? 'task' : 'taskuri'}</div>
+            </div>
+          </div>
+        `;
+      });
+    }
+    listEl.innerHTML = html;
+    return;
+  }
+}
+
+function handlePickerClick(e) {
+  // Back button
+  if (e.target.closest('#pickerBack')) {
+    activePicker.stage = 'block';
+    activePicker.blockId = null;
+    activePicker.blockTitle = null;
+    renderTaskPicker();
+    return;
+  }
+
+  // Block selection
+  const blockOpt = e.target.closest('[data-pick-block]');
+  if (blockOpt && activePicker.stage === 'block') {
+    const blockId = blockOpt.dataset.pickBlock;
+    const blockTitle = blockOpt.dataset.pickBlockTitle;
+
+    if (blockId === 'other') {
+      // "Altele" — sărim direct la text input, fără zone picker
+      closeTaskPicker();
+      openTaskCreator('other', 'Altele', null);
+      return;
+    }
+
+    activePicker.blockId = blockId;
+    activePicker.blockTitle = blockTitle;
+    activePicker.stage = 'zone';
+    renderTaskPicker();
+    return;
+  }
+
+  // Zone selection
+  const zoneOpt = e.target.closest('[data-pick-zone]');
+  if (zoneOpt && activePicker.stage === 'zone') {
+    const zoneTitle = zoneOpt.dataset.pickZone === '__none__' ? null : zoneOpt.dataset.pickZone;
+    const blockId = activePicker.blockId;
+    const blockTitle = activePicker.blockTitle;
+    closeTaskPicker();
+    openTaskCreator(blockId, blockTitle, zoneTitle);
+    return;
+  }
+}
+
+// ============ TASK CREATOR ============
+let activeTaskCreator = { blockId: null, zone: null };
+
+function openTaskCreator(blockId, blockTitle, zoneTitle) {
+  activeTaskCreator.blockId = blockId;
+  activeTaskCreator.zone = zoneTitle || null;
+  const where = zoneTitle ? `${blockTitle} · ${zoneTitle}` : blockTitle;
+  document.getElementById('taskCreatorTitle').textContent = `Task nou`;
+  // Show breadcrumb-like text
+  let bread = document.getElementById('taskCreatorBreadcrumb');
+  if (!bread) {
+    bread = document.createElement('div');
+    bread.id = 'taskCreatorBreadcrumb';
+    bread.className = 'picker-breadcrumb';
+    const modal = document.getElementById('taskCreatorModal').querySelector('.modal');
+    modal.insertBefore(bread, modal.children[1]);
+  }
+  bread.textContent = where;
+  bread.style.display = 'block';
+
+  document.getElementById('newTaskText').value = '';
+  document.getElementById('taskCreatorModal').classList.add('visible');
+  setTimeout(() => {
+    document.getElementById('newTaskText').focus();
+    adjustModalForKeyboard();
+  }, 150);
+}
+
+function resetModalStyles(modalOverlayId) {
+  const overlay = document.getElementById(modalOverlayId);
+  if (!overlay) return;
+  overlay.style.paddingBottom = '';
+  const modal = overlay.querySelector('.modal');
+  if (modal) modal.style.maxHeight = '';
+}
+
+function closeTaskCreator() {
+  document.getElementById('taskCreatorModal').classList.remove('visible');
+  resetModalStyles('taskCreatorModal');
+  activeTaskCreator.blockId = null;
+  activeTaskCreator.zone = null;
+}
+
+async function saveNewTask() {
+  const text = document.getElementById('newTaskText').value.trim();
+  const blockId = activeTaskCreator.blockId;
+  const zone = activeTaskCreator.zone;
+  if (!text || !blockId) {
+    closeTaskCreator();
+    return;
+  }
+  const created = await applyAndSync_addCustomTask(blockId, text, zone);
+  closeTaskCreator();
+  if (created) showToast('Task adăugat');
+}
+
 function openContactEditor(existingContact, prefillName, callback) {
   activeContactEditor = {
     contact: existingContact,
@@ -2228,6 +2751,7 @@ function openContactEditor(existingContact, prefillName, callback) {
 
 function closeContactEditor() {
   document.getElementById('contactModal').classList.remove('visible');
+  resetModalStyles('contactModal');
   activeContactEditor = { contact: null, callback: null, selectedCategory: '' };
 }
 
@@ -2341,6 +2865,19 @@ function rerenderContactsSection() {
 
 // Contact modal event handlers
 document.getElementById('contactCancel').addEventListener('click', closeContactEditor);
+
+// Task creator handlers
+document.getElementById('taskCreatorCancel').addEventListener('click', closeTaskCreator);
+document.getElementById('taskCreatorSave').addEventListener('click', saveNewTask);
+document.getElementById('taskCreatorModal').addEventListener('click', (e) => {
+  if (e.target.id === 'taskCreatorModal') closeTaskCreator();
+});
+document.getElementById('newTaskText').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    saveNewTask();
+  }
+});
 document.getElementById('contactSave').addEventListener('click', saveContactFromEditor);
 document.getElementById('contactModal').addEventListener('click', (e) => {
   if (e.target.id === 'contactModal') closeContactEditor();
@@ -2458,12 +2995,62 @@ function openAssignModal(taskId) {
   document.getElementById('assignSearch').value = '';
   renderAssignOptions();
   document.getElementById('assignModal').classList.add('visible');
-  setTimeout(() => document.getElementById('assignSearch').focus(), 200);
+  setTimeout(() => {
+    document.getElementById('assignSearch').focus();
+    adjustModalForKeyboard();
+  }, 200);
 }
 
 function closeAssignModal() {
   document.getElementById('assignModal').classList.remove('visible');
+  resetModalStyles('assignModal');
   activeAssignTaskId = null;
+}
+
+// ===== Keyboard handling: ridică modalul activ când apare tastatura =====
+function adjustModalForKeyboard() {
+  if (!window.visualViewport) return;
+  // Funcția va fi apelată la fiecare deschidere de modal cu input
+  // Listener-ul global de pe visualViewport (setat la init) face restul.
+}
+
+function setupViewportHandler() {
+  if (!window.visualViewport) return;
+  const handler = () => {
+    const vv = window.visualViewport;
+    // Înălțimea efectivă cu tastatura deschisă
+    const visibleHeight = vv.height;
+    // Aplicăm pe orice modal vizibil
+    document.querySelectorAll('.modal-overlay.visible').forEach(overlay => {
+      const modal = overlay.querySelector('.modal');
+      if (!modal) return;
+      // Limităm înălțimea maximă a modalului la viewport-ul vizibil minus o margine
+      modal.style.maxHeight = (visibleHeight - 20) + 'px';
+      // Dacă modal e atașat la bottom (slide-up), ne asigurăm că e deasupra tastaturii
+      if (!overlay.classList.contains('center')) {
+        // Pentru modal-uri slide-up: împingem overlay-ul în sus cu offset-ul ascuns
+        const offset = (window.innerHeight - vv.height - vv.offsetTop);
+        overlay.style.paddingBottom = offset + 'px';
+      }
+    });
+  };
+  window.visualViewport.addEventListener('resize', handler);
+  window.visualViewport.addEventListener('scroll', handler);
+
+  // La focus pe input dintr-un modal, scroll input-ul în viewport
+  document.addEventListener('focusin', (e) => {
+    const target = e.target;
+    if (!target.matches('input, textarea')) return;
+    // Verific dacă e într-un modal vizibil
+    const modal = target.closest('.modal');
+    if (!modal) return;
+    // Așteaptă tastatura să apară (~300ms pe iOS)
+    setTimeout(() => {
+      try {
+        target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      } catch (e) {}
+    }, 300);
+  });
 }
 
 function renderAssignOptions() {
@@ -2637,6 +3224,35 @@ document.addEventListener('click', (e) => {
     return;
   }
 
+  // Add custom task button
+  const addTaskBtn = e.target.closest('[data-add-task-block]');
+  if (addTaskBtn) {
+    const blockId = addTaskBtn.dataset.addTaskBlock;
+    const block = DATA.find(b => b.id === blockId);
+    const blockTitle = block ? block.title : (blockId === 'other' ? 'Altele' : blockId);
+    openTaskCreator(blockId, blockTitle);
+    return;
+  }
+
+  // Delete custom task
+  const deleteTaskBtn = e.target.closest('[data-delete-task]');
+  if (deleteTaskBtn) {
+    e.stopPropagation();
+    const taskId = deleteTaskBtn.dataset.deleteTask;
+    const blockId = findBlockForTask(taskId);
+    const task = findTask(taskId);
+    if (!task || !blockId) return;
+    showConfirm(
+      'Șterge taskul?',
+      `Vei elimina "${task.text}" pentru toată echipa. Acțiunea nu poate fi anulată.`,
+      async () => {
+        await applyAndSync_deleteCustomTask(blockId, taskId);
+        showToast('Task șters');
+      }
+    );
+    return;
+  }
+
   // Toggle block
   const blockToggle = e.target.closest('[data-block-toggle]');
   if (blockToggle) {
@@ -2719,6 +3335,16 @@ document.getElementById('myTasksFab').addEventListener('click', () => {
   saveState();
   applyFilter();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// FAB: open task picker
+document.getElementById('addTaskFab').addEventListener('click', openTaskPicker);
+
+// Picker modal interactions
+document.getElementById('pickerList').addEventListener('click', handlePickerClick);
+document.getElementById('pickerBack').addEventListener('click', handlePickerClick);
+document.getElementById('taskPickerModal').addEventListener('click', (e) => {
+  if (e.target.id === 'taskPickerModal') closeTaskPicker();
 });
 
 // ============ CONFIRM MODAL ============
@@ -2892,6 +3518,7 @@ async function init() {
   // Render once with empty state (Firebase listener will populate immediately)
   render();
   updateSyncBadge();
+  setupViewportHandler();
 
   // Wait for Firebase SDK to be ready (loaded async via <script type="module">)
   let waited = 0;
